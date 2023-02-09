@@ -25,7 +25,7 @@ lint:
 	@echo ">>> Running code linting"
 	poetry run isort --skip-glob $(SRC_DIR)/tests --skip-glob $(SRC_DIR)/notebooks --profile=black --lines-after-imports 2 --check-only $(SRC_DIR) main.py
 	poetry run black --check $(SRC_DIR) main.py --diff
-	poetry run flake8 --exclude $(SRC_DIR)/tests --exclude $(SRC_DIR)/notebooks --ignore=W503,E501 $(SRC_DIR) main.py
+	poetry run flake8 --exclude $(SRC_DIR)/tests --exclude $(SRC_DIR)/notebooks --ignore=W503,E501,F841,E203 $(SRC_DIR) main.py --docstring-convention numpy
 
 format:
 	@echo ">>> Reformatting code"

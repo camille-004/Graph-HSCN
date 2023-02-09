@@ -1,3 +1,4 @@
+"""Main run script."""
 import datetime
 import logging
 import os
@@ -21,20 +22,29 @@ from torch_geometric.graphgym.optim import (
     create_optimizer,
     create_scheduler,
 )
-from torch_geometric.graphgym.register import train_dict
-from torch_geometric.graphgym.train import train
 from torch_geometric.graphgym.utils.agg_runs import agg_runs
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
 from yacs.config import CfgNode
 
-# Register custom modules
-import gnn_180b  # noqa
+import gnn_180b  # noqa, register custom modules
 from gnn_180b.logger import create_logger
 from gnn_180b.train.custom_train import custom_train
 
 
 def new_optim_config(_cfg: CfgNode) -> OptimizerConfig:
+    """Return an OptimizerConfig from the experiment config.
+
+    Parameters
+    ----------
+    _cfg : CfgNode
+        Yacs config used by the GraphGym experiment.
+
+    Returns
+    -------
+    OptimizerConfig
+        OptimizerConfig from experiment config.
+    """
     return OptimizerConfig(
         optimizer=_cfg.optim.optimizer,
         base_lr=_cfg.optim.base_lr,
@@ -44,6 +54,18 @@ def new_optim_config(_cfg: CfgNode) -> OptimizerConfig:
 
 
 def new_scheduler_config(_cfg: CfgNode) -> SchedulerConfig:
+    """Return a SchedulerConfig from the experiment config.
+
+    Parameters
+    ----------
+    _cfg : CfgNode
+        Yacs config used by the GraphGym experiment.
+
+    Returns
+    -------
+    SchedulerConfig
+        SchedulerConfig from experiment config.
+    """
     return SchedulerConfig(
         scheduler=_cfg.optim.scheduler,
         steps=_cfg.optim.steps,
@@ -53,17 +75,53 @@ def new_scheduler_config(_cfg: CfgNode) -> SchedulerConfig:
 
 
 def custom_set_out_dir(_cfg: CfgNode, cfg_name: str, name_tag: str) -> None:
+    """Set the results directory for an experiment.
+
+    Parameters
+    ----------
+    _cfg : CfgNode
+        Yacs config used by the GraphGym experiment.
+    cfg_name : str
+        Name of the config.
+    name_tag : str
+        Nametag defined in defaults extension.
+
+    Returns
+    -------
+    None
+    """
     run_name = os.path.splitext(os.path.basename(cfg_name))[0]
     run_name += f"{name_tag}" if name_tag else ""
     _cfg.out_dir = os.path.join(_cfg.out_dir, run_name)
 
 
 def custom_set_run_dir(_cfg: CfgNode, _run_id: int) -> None:
+    """Set the results directory for a run.
+
+    Parameters
+    ----------
+    _cfg : CfgNode
+        Yacs config used by the GraphGym experiment.
+    _run_id : int
+        Run ID for a run directory.
+
+    Returns
+    -------
+    None
+    """
     _cfg.run_dir = os.path.join(_cfg.out_dir, "run_" + str(_run_id))
     makedirs_rm_exist(_cfg.run_dir)
 
 
 def run_loop_settings() -> tuple[list[int], list[int], list[int]]:
+    """Define the runs, seeds, and split indices.
+
+    This will depend on whether we want a multi-seed or multi-split run.
+
+    Returns
+    -------
+    None
+    """
     if len(cfg.run_multiple_splits) == 0:
         # "Multi-seed" run mode
         num_iter = args.repeat

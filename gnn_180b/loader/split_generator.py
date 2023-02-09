@@ -1,14 +1,28 @@
+"""Functions for splitting the dataset."""
 import json
 import logging
 import os
 
 import numpy as np
+import torch
 from sklearn.model_selection import KFold, ShuffleSplit, StratifiedKFold
+from torch_geometric.data import Data
 from torch_geometric.graphgym.config import cfg
-from torch_geometric.graphgym.loader import index2mask, set_dataset_attr
+from torch_geometric.graphgym.loader import index_to_mask, set_dataset_attr
 
 
-def prepare_splits(dataset):
+def prepare_splits(dataset: Data) -> None:
+    """Specify the split to use in loading the dataset.
+
+    Parameters
+    ----------
+    dataset : Data
+        Dataset to use.
+
+    Returns
+    -------
+    None
+    """
     split_mode = cfg.dataset.split_mode
 
     match split_mode:
@@ -24,7 +38,18 @@ def prepare_splits(dataset):
                 raise ValueError(f"Unknown split mode: {split_mode}")
 
 
-def setup_standard_split(dataset):
+def setup_standard_split(dataset: Data) -> None:
+    """Set up the dataset for a standard split (supplied in the dataset).
+
+    Parameters
+    ----------
+    dataset : Data
+        Dataset to use.
+
+    Returns
+    -------
+    None
+    """
     split_index = cfg.dataset.split_index
     task_level = cfg.dataset.task
 
@@ -65,7 +90,18 @@ def setup_standard_split(dataset):
             )
 
 
-def setup_random_split(dataset):
+def setup_random_split(dataset: Data) -> None:
+    """Set up the dataset for a random split based on the split ratio.
+
+    Parameters
+    ----------
+    dataset : Data
+        Dataset to use.
+
+    Returns
+    -------
+    None
+    """
     split_ratios = cfg.dataset.split
 
     if len(split_ratios) != 3:
@@ -96,7 +132,20 @@ def setup_random_split(dataset):
     set_dataset_splits(dataset, [train_index, val_index, test_index])
 
 
-def set_dataset_splits(dataset, splits):
+def set_dataset_splits(dataset: Data, splits: list[torch.Tensor]) -> None:
+    """Set the dataset splits depending on the task level..
+
+    Parameters
+    ----------
+    dataset : Data
+        Dataset to use.
+    splits : list[torch.Tensor]
+        List of indices for splitting.
+
+    Returns
+    -------
+    None
+    """
     for i in range(len(splits) - 1):
         for j in range(i + 1, len(splits)):
             n_intersect = len(set(splits[i]) & set(splits[j]))
@@ -115,7 +164,9 @@ def set_dataset_splits(dataset, splits):
             split_names = ["train_mask", "val_mask", "test_mask"]
 
             for split_name, split_index in zip(split_names, splits):
-                mask = index2mask(split_index, size=dataset.data.y.shape[0])
+                mask = index_to_mask(
+                    torch.from_numpy(split_index), size=dataset.data.y.shape[0]
+                )
                 set_dataset_attr(dataset, split_name, mask, len(mask))
         case "graph":
             split_names = [
@@ -132,7 +183,22 @@ def set_dataset_splits(dataset, splits):
             raise ValueError(f"Unsupported dataset task level: {task_level}")
 
 
-def setup_cv_split(dataset, cv_type, k):
+def setup_cv_split(dataset: Data, cv_type: str, k: int) -> None:
+    """Set up splits for CV.
+
+    Parameters
+    ----------
+    dataset : Data
+        Dataset to use.
+    cv_type : str
+        Type of CV to use.
+    k : int
+        Value of k for CV.
+
+    Returns
+    -------
+    None
+    """
     split_index = cfg.dataset.split_index
     split_dir = cfg.dataset.split_dir
 
@@ -169,7 +235,26 @@ def setup_cv_split(dataset, cv_type, k):
     set_dataset_splits(dataset, [train_ids, val_ids, test_ids])
 
 
-def create_cv_splits(dataset, cv_type, k, file_name):
+def create_cv_splits(
+    dataset: Data, cv_type: str, k: int, file_name: str
+) -> None:
+    """Create cross-validation splits.
+
+    Parameters
+    ----------
+    dataset : Data
+        Dataset to use.
+    cv_type : str
+        Type of CV to use.
+    k : int
+        Value of K for CV.
+    file_name : str
+        Name of file in which to save splits.
+
+    Returns
+    -------
+    None
+    """
     n_samples = len(dataset)
 
     if cv_type == "stratifiedKfold":

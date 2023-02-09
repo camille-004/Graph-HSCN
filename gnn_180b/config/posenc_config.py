@@ -1,11 +1,21 @@
+"""Custom position encoding config."""
 from torch_geometric.graphgym.register import register_config
 from yacs.config import CfgNode as CN
 
 
 @register_config("posenc")
-def set_cfg_posenc(cfg):
-    """Extend configuration with positional encoding options."""
+def set_cfg_posenc(cfg: CN) -> None:
+    """Define a custom config to extend positional encoding options.
 
+    Parameters
+    ----------
+    cfg : CN
+        Yacs config used by GraphGym.
+
+    Returns
+    -------
+    None
+    """
     # Argument group for each Positional Encoding class.
     cfg.posenc_LapPE = CN()
     cfg.posenc_SignNet = CN()
@@ -50,7 +60,8 @@ def set_cfg_posenc(cfg):
         pe_cfg = getattr(cfg, name)
         pe_cfg.eigen = CN()
 
-        # The normalization scheme for the graph Laplacian: 'none', 'sym', or 'rw'
+        # The normalization scheme for the graph Laplacian: 'none', 'sym', or
+        # 'rw'
         pe_cfg.eigen.laplacian_norm = "sym"
 
         # The normalization scheme for the eigen vectors of the Laplacian

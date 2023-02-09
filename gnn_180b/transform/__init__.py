@@ -1,3 +1,4 @@
+"""Package for defining custom transforms."""
 import glob
 from os.path import basename, dirname, isfile, join
 

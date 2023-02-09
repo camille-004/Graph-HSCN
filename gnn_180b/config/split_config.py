@@ -1,8 +1,21 @@
+"""Custom split config."""
 from torch_geometric.graphgym.register import register_config
+from yacs.config import CfgNode
 
 
 @register_config("split_cfg")
-def set_cfg_split(cfg):
+def set_cfg_split(cfg: CfgNode) -> None:
+    """Define a custom config to extend split options.
+
+    Parameters
+    ----------
+    cfg : CfgNode
+        Yacs config used by GraphGym.
+
+    Returns
+    -------
+    None
+    """
     # Default to selecting the standard split that ships with the dataset
     cfg.dataset.split_node = "standard"
 

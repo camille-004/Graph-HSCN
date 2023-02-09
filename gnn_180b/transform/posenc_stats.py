@@ -1,14 +1,42 @@
+"""Functions for precomputing positional encoding stats."""
+from typing import Literal
+
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torch_geometric.utils import (
+from torch_geometric.data import Data
+from torch_geometric.utils import (  # noqa
     get_laplacian,
     to_scipy_sparse_matrix,
     to_undirected,
 )
+from yacs.config import CfgNode
 
 
-def compute_posenc_stats(data, pe_types, is_undirected, cfg):
+Normalization = Literal["L1", "L2", "abs-max"]
+
+
+def compute_posenc_stats(
+    data: Data, pe_types: list[str], is_undirected: bool, cfg: CfgNode
+):
+    """Precompute positional encodings for the given graph.
+
+    Parameters
+    ----------
+    data : Data
+        PyG graph object.
+    pe_types : list[str]
+        Positional encoding types to precompute statistics for.
+    is_undirected : bool
+        Whether the graph is expected to be undirected.
+    cfg : CfgNode
+        Configuration node for experiment.
+
+    Returns
+    -------
+    Data
+        Extended PyG graph object.
+    """
     for t in pe_types:
         if t not in [
             "LapPE",
@@ -52,7 +80,7 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
             max_freqs = cfg.posenc_EquivStableLLapPE.eigen.nax_freqs
             eigvec_norm = cfg.posenc_EquivStableLapPE.eigen.eigvec_norm
 
-        data.EigVals, data.EigVecs = get_lap_decomp_stats(
+        data.eig_vals, data.eig_vecs = get_lap_decomp_stats(
             evals=evals,
             evects=evects,
             max_freqs=max_freqs,
@@ -81,7 +109,31 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     return data
 
 
-def get_lap_decomp_stats(evals, evects, max_freqs, eigvec_norm="L2"):
+def get_lap_decomp_stats(
+    evals: torch.Tensor,
+    evects: torch.Tensor,
+    max_freqs: int,
+    eigvec_norm: Normalization = "L2",
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Compute Laplacian eigen-decomposition-based PE stats of a graph.
+
+    Parameters
+    ----------
+    evals : torch.Tensor
+        Precomputed eigenvalues.
+    evects : torch.Tensor
+        Precomputed eigenvectors.
+    max_freqs : int
+        Maximum number of top smallest frequencies/eigenvectors to use.
+    eigvec_norm : Normalization
+        Normalization for the eigenvectors of the Laplacian.
+
+    Returns
+    -------
+    tuple[torch.Tensor, torch.Tensor]
+        Tensor (num_nodes, max_freqs, 1) eigenvalues repeated for each node.
+        Tensor (num_nodes, max_freqs) of eigenvector values per node.
+    """
     N = len(evals)  # Number of nodes, including disconnected nodes
 
     idx = evals.argsort()[:max_freqs]
@@ -110,7 +162,27 @@ def get_lap_decomp_stats(evals, evects, max_freqs, eigvec_norm="L2"):
     return eig_vals, eig_vecs
 
 
-def eigvec_normalizer(eig_vecs, normalization="L2", eps=1e-12):
+def eigvec_normalizer(
+    eig_vecs: torch.Tensor,
+    normalization: Normalization = "L2",
+    eps: float = 1e-12,
+):
+    """Implement different eigenvector normalizations.
+
+    Parameters
+    ----------
+    eig_vecs : torch.Tensor
+        Eigenvectors of data.
+    normalization : Normalization
+        Normalization scheme.
+    eps: float
+        Epsilon for clamping.
+
+    Returns
+    -------
+    torch.Tensor
+        Normalized eigenvectors.
+    """
     match normalization:
         case "L1":
             # eigvec / sum(abs(eigvec))
@@ -122,7 +194,7 @@ def eigvec_normalizer(eig_vecs, normalization="L2", eps=1e-12):
             # eigvec / max(|eigvec|)
             denom = torch.max(eig_vecs.abs(), dim=0, keepdim=True).values
         case other:
-            raise ValueError(f"Unsupported normalization '{normalization}'")
+            raise ValueError(f"Unsupported normalization `{normalization}`")
 
     denom = denom.clamp_min(eps).expand_as(eig_vecs)
     eig_vecs = eig_vecs / denom

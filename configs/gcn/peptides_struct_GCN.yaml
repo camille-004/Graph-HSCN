@@ -9,7 +9,6 @@ dataset:
   name: peptides-structural
   task: graph
   task_type: regression
-  num_classes: 11
   transductive: False
   node_encoder: True
   node_encoder_name: Atom

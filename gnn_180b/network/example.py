@@ -1,15 +1,20 @@
+"""Example GNN builder."""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch_geometric.graphgym.models.head  # noqa, register module
 import torch_geometric.graphgym.register as register
 import torch_geometric.nn as pyg_nn
+from torch_geometric.data import Data
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.register import register_network
+from torch_geometric.nn.conv import MessagePassing
 
 
 @register_network("example")
 class ExampleGNN(torch.nn.Module):
+    """Example GNN."""
+
     def __init__(self, dim_in, dim_out, num_layers=2, model_type="GCN"):
         super().__init__()
         conv_model = self.build_conv_model(model_type)
@@ -22,7 +27,19 @@ class ExampleGNN(torch.nn.Module):
         GNNHead = register.head_dict[cfg.dataset.task]
         self.post_mp = GNNHead(dim_in=dim_in, dim_out=dim_out)
 
-    def build_conv_model(self, model_type):
+    def build_conv_model(self, model_type: str) -> type[MessagePassing]:
+        """Define the layers for the convolutional NN.
+
+        Parameters
+        ----------
+        model_type : str
+            Type of convolution layer to use.
+
+        Returns
+        -------
+        type[MessagePassing]
+            The convolution layer to be used.
+        """
         if model_type == "GCN":
             return pyg_nn.GCNConv
         elif model_type == "GAT":
@@ -32,7 +49,18 @@ class ExampleGNN(torch.nn.Module):
         else:
             raise ValueError(f"Model {model_type} unavailable")
 
-    def forward(self, batch):
+    def forward(self, batch: Data) -> Data:
+        """Forward method.
+
+        Parameters
+        ----------
+        batch : Data
+            Batch for model.
+
+        Returns
+        -------
+        Data
+        """
         x, edge_index = batch.x, batch.edge_index
 
         for i in range(len(self.convs)):

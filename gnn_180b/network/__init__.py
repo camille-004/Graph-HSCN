@@ -1,3 +1,4 @@
+"""Package for building custom neural networks."""
 import glob
 from os.path import basename, dirname, isfile, join
 

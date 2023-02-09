@@ -1,13 +1,34 @@
+"""Utility and helper functions."""
 import logging
 from functools import reduce
+from typing import Any, Literal
 
 import numpy as np
 import torch
 from scipy.stats import stats
+from torch_geometric.graphgym.config import cfg
 from yacs.config import CfgNode
 
 
 EPS = 1e-5
+
+Reduction = Literal["elementwise_mean", "sum", "none"]
+
+
+def reformat(x: Any) -> float:
+    """Reformatting for metrics.
+
+    Parameters
+    ----------
+    x : Any
+        Value to round.
+
+    Returns
+    -------
+    float
+        Rounded value.
+    """
+    return round(float(x), cfg.round)
 
 
 def eval_spearmanr(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
@@ -43,7 +64,8 @@ def _get_rank(values):
             val_rank[val_sorter[:, ii], ii] = arange
     else:
         raise ValueError(
-            f"Only supports tensors of dimensions 1 and 2. Provided dim=`{values.ndim}`."
+            f"Only supports tensors of dimensions 1 and 2. Provided dim="
+            f"`{values.ndim}`."
         )
 
     return val_rank
@@ -52,8 +74,27 @@ def _get_rank(values):
 def pearsonr(
     y_pred: torch.Tensor,
     y_true: torch.Tensor,
-    reduction: str = "elementwise_mean",
+    reduction: Reduction = "elementwise_mean",
 ) -> torch.Tensor:
+    """Compute the Pearson R correlation.
+
+    Parameters
+    ----------
+    y_pred : torch.Tensor
+        Estimated labels.
+    y_true : torch.Tensor
+        Ground truth labels.
+    reduction : Reduction
+        A method to reduce the metric score over labels.
+        - ``'elementwise_mean'``: Takes the mean (default).
+        - ``'sum'``: Takes the sum.
+        - ``'none'``: No reduction.
+
+    Returns
+    -------
+    torch.Tensor
+        Tensor with the Pearson's R.
+    """
     pred, true = y_pred.to(torch.float32), y_true.to(torch.float32)
 
     shifted_x = pred - torch.mean(pred, dim=0)
@@ -72,15 +113,45 @@ def pearsonr(
 def spearmanr(
     y_pred: torch.Tensor,
     y_true: torch.Tensor,
-    reduction: str = "elementwise_mean",
+    reduction: Reduction = "elementwise_mean",
 ) -> torch.Tensor:
+    """Calculate the Spearman's rho correlation.
+
+    Parameters
+    ----------
+    y_pred : torch.Tensor
+        Estimated labels.
+    y_true : torch.Tensor
+        Ground truth labels.
+    reduction : Reduction
+        A method to reduce the metric score over labels.
+        - ``'elementwise_mean'``: Takes the mean (default).
+        - ``'sum'``: Takes the sum.
+        - ``'none'``: No reduction.
+
+    Returns
+    -------
+    torch.Tensor
+        Tensor with the Spearman's rho.
+    """
     spearman = pearsonr(
-        _get_rank(y_pred), _get_rank(_y_true), reduction=reduction
+        _get_rank(y_pred), _get_rank(y_true), reduction=reduction
     )
     return spearman
 
 
 def make_wandb_name(cfg: CfgNode) -> str:
+    """Make a name for the WandB run.
+
+    Parameters
+    ----------
+    cfg : Yacs config used by GraphGym.
+
+    Returns
+    -------
+    str
+        Name to be used by WandB.
+    """
     dataset_name = cfg.dataset.format
 
     if dataset_name.startswith("OGB"):
@@ -101,18 +172,47 @@ def make_wandb_name(cfg: CfgNode) -> str:
     return name
 
 
-def flatten_dict(metrics: dict) -> dict:
+def flatten_dict(metrics: list[dict]) -> dict:
+    """Flatten a list of train/val/test metrics into one dict for WandB.
+
+    Parameters
+    ----------
+    metrics : list[dict]
+        List of dictionaries with metrics.
+
+    Returns
+    -------
+    dict
+        A flat dictionary, names prefixed with "train - ", "val - ", "test - "
+    """
     prefixes = ["train", "val", "test"]
     result = {}
 
     for i in range(len(metrics)):
         _stats = metrics[i][-1]
-        result.update({f"{prefixes[i]} / {k}": v for k, v in _stats.items()})
+        result.update({f"{prefixes[i]} - {k}": v for k, v in _stats.items()})
 
     return result
 
 
 def cfg_to_dict(cfg_node: CfgNode, key_list: list = []) -> CfgNode | dict:
+    """Convert a config node to a dictionary.
+
+    Yacs doesn't have a default function to convert a CfgNode to a plain Python
+    dict. Adapted from https://github.com/rbgirshick/yacs/issues/19.
+
+    Parameters
+    ----------
+    cfg_node : CfgNode
+        Main config to convert.
+    key_list : list
+        Keys to have in dict, and whose type to check.
+
+    Returns
+    -------
+    CfgNode | dict
+        Converted config or original CfgNode if key type is not valid.
+    """
     _VALID_TYPES = {tuple, list, str, int, float, bool}
 
     if not isinstance(cfg_node, CfgNode):

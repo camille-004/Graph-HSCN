@@ -1,3 +1,4 @@
+"""Define a custom logger."""
 import logging
 import time
 from typing import Any
@@ -20,7 +21,7 @@ from torch_geometric.graphgym.utils.io import dict_to_json
 
 import gnn_180b.metrics_ogb as metrics_ogb
 from gnn_180b.metric_wrapper import MetricWrapper
-from gnn_180b.util import eval_spearmanr
+from gnn_180b.util import eval_spearmanr, reformat
 
 
 class CustomLogger(Logger):
@@ -33,6 +34,16 @@ class CustomLogger(Logger):
         self._params = None
 
     def basic(self) -> dict[str, Any]:
+        """Get basic stats for logging.
+
+        Stats are current loss, LR, number of params, time used, and GPU
+        memory, if applicable.
+
+        Returns
+        -------
+        dict[str, Any]
+            Basic stats to use for logging.
+        """
         stats = {
             "loss": round(self._loss / self._size_current, max(8, cfg.round)),
             "lr": round(self._lr, max(8, cfg.round)),
@@ -47,10 +58,18 @@ class CustomLogger(Logger):
         return stats
 
     def classification_binary(self) -> dict[str, float]:
+        """Return metrics for binary classification.
+
+        Metrics are accuracy, precision, recall, and F1-score.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary with binary classification metrics.
+        """
         true = torch.cat(self._true).squeeze(-1)
         pred_score = torch.cat(self._pred)
         pred_int = self._get_pred_int(pred_score)
-        reformat = lambda x: round(float(x), cfg.round)
 
         return {
             "accuracy": reformat(accuracy_score(true, pred_int)),
@@ -60,20 +79,36 @@ class CustomLogger(Logger):
         }
 
     def classification_multi(self) -> dict[str, float]:
+        """Return metrics for multiclass classification.
+
+        Metrics are accuracy and F1-score.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary with multiclass classification metrics.
+        """
         true, pred_score = torch.cat(self._true), torch.cat(self._pred)
         pred_int = self._get_pred_int(pred_score)
-        reformat = lambda x: round(float(x), cfg.round)
 
         return {
             "accuracy": reformat(accuracy_score(true, pred_int)),
             "f1": reformat(
-                f1_score(true, pred_int, average="macro", zero_division=0)
+                f1_score(true, pred_int, average="macro", zero_division="0")
             ),
         }
 
     def classification_multilabel(self) -> dict[str, float]:
+        """Return metrics for multilabel classification.
+
+        Metrics are accuracy and average precision.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary with multilabel classification metrics.
+        """
         true, pred_score = torch.cat(self._true), torch.cat(self._pred)
-        reformat = lambda x: round(float(x), cfg.round)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Send to GPU to speed up torchmetrics if possible
@@ -84,14 +119,13 @@ class CustomLogger(Logger):
             target_nan_mask="ignore-mean-label",
             threshold=0.0,
             cast_to_int=True,
-            task="binary"
+            task="binary",
         )
-        print(acc)
         ap = MetricWrapper(
             metric="averageprecision",
             target_nan_mask="ignore-mean-label",
             cast_to_int=True,
-            task="binary"
+            task="binary",
         )
 
         res = {
@@ -116,8 +150,16 @@ class CustomLogger(Logger):
         return res
 
     def regression(self) -> dict[str, float]:
+        """Return metrics for regression task.
+
+        Metrics are MAE, R^2, Spearman Rho, MSE, RMSE.
+
+        Returns
+        -------
+        dict[str, float]
+            Dictionary with regression metrics.
+        """
         true, pred = torch.cat(self._true), torch.cat(self._pred)
-        reformat = lambda x: round(float(x), cfg.round)
 
         return {
             "mae": reformat(mean_absolute_error(true, pred)),
@@ -133,20 +175,44 @@ class CustomLogger(Logger):
 
     def update_stats(
         self,
-        true,
-        pred,
-        loss,
-        lr,
-        time_used,
-        params,
+        y_true: torch.Tensor,
+        y_pred: torch.Tensor,
+        loss: torch.Tensor,
+        lr: float,
+        time_used: float,
+        params: float,
         dataset_name=None,
         **kwargs,
-    ):
-        assert true.shape[0] == pred.shape[0]
-        batch_size = true.shape[0]
+    ) -> None:
+        """Update the stats for the logger.
+
+        Parameters
+        ----------
+        y_true : torch.Tensor
+            Ground truth labels.
+        y_pred : torch.Tensor
+            Prediction labels.
+        loss : torch.Tensor
+            Current loss.
+        lr : float
+            Current learning rate.
+        time_used : float
+            Time taken.
+        params : float
+            Number of parameters.
+        dataset_name : str
+            Name of the dataset.
+        kwargs
+
+        Returns
+        -------
+        None
+        """
+        assert y_true.shape[0] == y_pred.shape[0]
+        batch_size = y_true.shape[0]
         self._iter += 1
-        self._true.append(true)
-        self._pred.append(pred)
+        self._true.append(y_true)
+        self._pred.append(y_pred)
         self._size_current += batch_size
         self._loss += loss * batch_size
         self._lr = lr
@@ -161,6 +227,18 @@ class CustomLogger(Logger):
                 self._custom_stats[k] += v * batch_size
 
     def write_epoch(self, cur_epoch: int) -> dict[str, Any]:
+        """Write an epoch to the logger.
+
+        Parameters
+        ----------
+        cur_epoch : int
+            Current epoch.
+
+        Returns
+        -------
+        dict[str, Any]
+            Time and metric stats depending on the task.
+        """
         start_time = time.perf_counter()
         basic_stats = self.basic()
 

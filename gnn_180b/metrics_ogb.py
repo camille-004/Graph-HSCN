@@ -1,14 +1,29 @@
 """
 Evaluation functions from OGB.
+
 https://github.com/snap-stanford/ogb/blob/master/ogb/graphproppred/evaluate.py
 """
 
 import numpy as np
-from sklearn.metrics import average_precision_score, roc_auc_score
+import torch
+from sklearn.metrics import average_precision_score
 
 
-def eval_ap(y_true, y_pred):
-    """Compute average precision averaged across tasks."""
+def eval_ap(y_true: torch.Tensor, y_pred: torch.Tensor) -> dict[str, float]:
+    """Evaluate average precision averaged across tasks.
+
+    Parameters
+    ----------
+    y_true : torch.Tensor
+        Ground truth labels.
+    y_pred : torch.Tensor
+        Prediction labels.
+
+    Returns
+    -------
+    dict[str, float]
+        Dictionary with the accuracy score.
+    """
     ap_list = []
 
     for i in range(y_true.shape[1]):
@@ -23,14 +38,28 @@ def eval_ap(y_true, y_pred):
 
     if len(ap_list) == 0:
         raise RuntimeError(
-            "No positively labeled data available. Cannot compute Average Precision."
+            "No positively labeled data available. Cannot compute Average"
+            "Precision."
         )
 
     return {"ap": sum(ap_list) / len(ap_list)}
 
 
-def eval_rmse(y_true, y_pred):
-    """Compute RMSE averaged over samples."""
+def eval_rmse(y_true: torch.Tensor, y_pred: torch.Tensor) -> dict[str, float]:
+    """Evaluate RMSE averaged over samples..
+
+    Parameters
+    ----------
+    y_true : torch.Tensor
+        Ground truth labels.
+    y_pred : torch.Tensor
+        Prediction labels.
+
+    Returns
+    -------
+    dict[str, float]
+        Dictionary with the RMSE.
+    """
     rmse_list = []
 
     for i in range(y_true.shape[1]):
@@ -45,7 +74,21 @@ def eval_rmse(y_true, y_pred):
     return {"rmse": sum(rmse_list) / len(rmse_list)}
 
 
-def eval_acc(y_true, y_pred):
+def eval_acc(y_true: torch.Tensor, y_pred: torch.Tensor) -> dict[str, float]:
+    """Evaluate accuracy.
+
+    Parameters
+    ----------
+    y_true : torch.Tensor
+        Ground truth labels.
+    y_pred : torch.Tensor
+        Prediction labels.
+
+    Returns
+    -------
+    dict[str, float]
+        Dictionary with the accuracy score.
+    """
     acc_list = []
 
     for i in range(y_true.shape[1]):
@@ -56,14 +99,27 @@ def eval_acc(y_true, y_pred):
     return {"acc": sum(acc_list) / len(acc_list)}
 
 
-def eval_F1(seq_ref, seq_pred):
-    """Compute F1 score averaged over samples."""
+def eval_F1(y_true: torch.Tensor, y_pred: torch.Tensor) -> dict[str, float]:
+    """Compute F1-score averaged over samples.
+
+    Parameters
+    ----------
+    y_true : torch.Tensor
+        Ground truth labels.
+    y_pred : torch.Tensor
+        Prediction labels.
+
+    Returns
+    -------
+    dict[str, float]
+        Dictionary of precision, recall, and F1-scores.
+    """
     precision_list = []
     recall_list = []
     f1_list = []
 
-    for l, p in zip(seq_ref, seq_pred):
-        label = set(l)
+    for _label, p in zip(y_true, y_pred):
+        label = set(_label)
         prediction = set(p)
         true_positive = len(label.intersection(prediction))
         false_positive = len(prediction - label)

@@ -1,3 +1,4 @@
+"""Package to register custom heads."""
 import glob
 from os.path import basename, dirname, isfile, join
 

@@ -1,3 +1,4 @@
+"""Package for registering custom configs."""
 import glob
 from os.path import basename, dirname, isfile, join
 

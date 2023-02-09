@@ -1,27 +1,48 @@
+"""Defining custom loaders."""
 import logging
 import os
 import time
 from functools import partial
 
 import torch
+import torch_geometric.transforms as T
+from torch_geometric.data import Data
 from torch_geometric.datasets import Planetoid
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.loader import load_pyg
 from torch_geometric.graphgym.register import register_loader
 from torch_geometric.utils import degree
 
-from gnn_180b.loader.dataset.peptides_functional import (
+from gnn_180b.loader.dataset.peptides_functional import (  # noqa
     PeptidesFunctionalDataset,
 )
-from gnn_180b.loader.dataset.peptides_structural import (
+from gnn_180b.loader.dataset.peptides_structural import (  # noqa
     PeptidesStructuralDataset,
 )
 from gnn_180b.loader.split_generator import prepare_splits, set_dataset_splits
 from gnn_180b.transform.posenc_stats import compute_posenc_stats
-from gnn_180b.transform.transforms import pre_transform_in_memory
+from gnn_180b.transform.transforms import (  # noqa
+    pre_transform_in_memory,
+    resample_citation_network,
+)
 
 
-def log_loaded_dataset(dataset, _format, name) -> None:
+def log_loaded_dataset(dataset: Data, _format: str, name: str) -> None:
+    """Log basic dataset statistics.
+
+    Parameters
+    ----------
+    dataset : Data
+        Dataset to use.
+    _format : str
+        Specified dataset format.
+    name : str
+        Name of the dataset.
+
+    Returns
+    -------
+    None
+    """
     logging.info(f"[*] Loaded dataset '{name}' from '{_format}':")
     logging.info(f"  {dataset.data}")
     logging.info(f"  Undirected: {dataset[0].is_undirected()}")
@@ -47,27 +68,51 @@ def log_loaded_dataset(dataset, _format, name) -> None:
         if dataset.data.y.numel() == dataset.data.y.size(
             0
         ) and torch.is_floating_point(dataset.data.y):
-            logging.info(f"  Num. classes: (appears to be a regression task)")
+            logging.info("  Num. classes: (appears to be a regression task)")
         else:
             logging.info(f"  Num. classes: {dataset.num_classes}")
 
 
 @register_loader("custom_loader")
-def load_dataset(format, name, data_dir):
-    if format.startswith("PyG-"):
-        pyg_dataset_id = format.split("-", 1)[1]
-        data_dir = os.path.join(data_dir, pyg_dataset_id)
+def load_dataset(_format: str, name: str, data_dir: str) -> Data:
+    """
+    Load specified dataset.
 
+    Load and resample the citation networks dataset or load and preformat the
+    Peptides datasets.
+
+    Parameters
+    ----------
+    _format : str
+        Specified dataset format.
+    name : str
+        Specified dataset name.
+    data_dir : str
+        Directory in which to save dataset.
+
+    Returns
+    -------
+    Data
+        Loaded and preformatted dataset.
+    """
+    if _format.startswith("PyG-"):
+        pyg_dataset_id = _format.split("-", 1)[1]
+        data_dir = os.path.join(data_dir, pyg_dataset_id)
         if pyg_dataset_id == "Planetoid":
-            dataset = Planetoid(data_dir, name)
+            dataset = Planetoid(
+                data_dir,
+                name,
+                pre_transform=T.NormalizeFeatures(),
+            )
+            pre_transform_in_memory(dataset, resample_citation_network)
         else:
             raise ValueError(
-                f"Unexpected PyG dataset identifier: {format}."
+                f"Unexpected PyG dataset identifier: {_format}."
                 f"Only Planetoid dataset is supported."
             )
-    elif format == "PyG":
+    elif _format == "PyG":
         dataset = load_pyg(name, data_dir)
-    elif format == "OGB":
+    elif _format == "OGB":
         if name.startswith("peptides-"):
             dataset = preformat_peptides(data_dir, name)
         else:
@@ -76,9 +121,10 @@ def load_dataset(format, name, data_dir):
                 f"peptides datasets are currently supported."
             )
     else:
-        raise ValueError(f"Unknown data format: {format}")
+        raise ValueError(f"Unknown data format: {_format}")
+    print(_format)
 
-    log_loaded_dataset(dataset, format, name)
+    log_loaded_dataset(dataset, _format, name)
     pe_enabled_list = []
 
     for k, pe_cfg in cfg.items():
@@ -138,7 +184,23 @@ def load_dataset(format, name, data_dir):
     return dataset
 
 
-def preformat_peptides(data_dir, name):
+def preformat_peptides(
+    data_dir: str, name: str
+) -> PeptidesStructuralDataset | PeptidesFunctionalDataset:
+    """Load a dataset and set its splits.
+
+    Parameters
+    ----------
+    data_dir : str
+        Directory in which to save the dataset.
+    name : str
+        Dataset name.
+
+    Returns
+    -------
+    PeptidesStructuralDataset | PeptidesFunctionalDataset
+        PReformatted peptides dataset.
+    """
     dataset_type = name.split("-", 1)[1]
 
     match dataset_type:
@@ -153,7 +215,19 @@ def preformat_peptides(data_dir, name):
     return dataset
 
 
-def compute_indegree_histogram(dataset):
+def compute_indegree_histogram(dataset: Data) -> list:
+    """Compute the in-degree histogram tensor for PNAConv layer.
+
+    Parameters
+    ----------
+    dataset : Data
+        Dataset to use.
+
+    Returns
+    -------
+    list
+        In-degree histogram.
+    """
     deg = torch.zeros(1000, dtype=torch.long)
     max_degree = 0
 

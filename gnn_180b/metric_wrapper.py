@@ -1,3 +1,4 @@
+"""Thresholder and MetricWrapper classes."""
 import operator as op
 import traceback
 import warnings
@@ -5,7 +6,6 @@ from copy import deepcopy
 from typing import Any, Callable
 
 import torch
-import torchmetrics
 from torchmetrics.functional import (
     accuracy,
     average_precision,
@@ -43,6 +43,8 @@ METRICS_DICT.update(METRICS_REGRESSION)
 
 
 class Thresholder:
+    """Perform thresholding on the labels if a metric requires a threshold."""
+
     def __init__(
         self,
         threshold: float,
@@ -84,6 +86,20 @@ class Thresholder:
     def compute(
         self, y_pred: torch.Tensor, y_true: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Apply a threshold to the targets and predictions.
+
+        Parameters
+        ----------
+        y_pred : torch.Tensor
+            Prediction labels.
+        y_true : torch.Tensor
+            Ground truth labels.
+
+        Returns
+        -------
+        tuple[torch.Tensor, torch.Tensor]
+            Thresholded prediction and truth labels.
+        """
         # Aplpy threshold on predictions.
         if self.th_on_preds:
             y_pred = self.operator(y_pred, self.threshold)
@@ -100,13 +116,35 @@ class Thresholder:
     def __call__(
         self, y_pred: torch.Tensor, y_true: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Perform the thersholding on the input labels.
+
+        Parameters
+        ----------
+        y_pred : torch.Tensor
+            Prediction labels.
+        y_true : torch.Tensor
+            Ground truth labels.
+
+        Returns
+        -------
+        tuple[torch.Tensor, torch.Tensor]
+            Thresholded prediction and truth labels.
+        """
         return self.compute(y_pred, y_true)
 
     def __repr__(self) -> str:
+        """Interpret the Thresholder class when printed.
+
+        Returns
+        -------
+        Full string representation of the class.
+        """
         return f"{self.op_str}{self.threshold}"
 
 
 class MetricWrapper:
+    """A class to compute a metric if it is given as a Callable or a string."""
+
     def __init__(
         self,
         metric: str | Callable,
@@ -129,6 +167,20 @@ class MetricWrapper:
     def compute(
         self, y_pred: torch.Tensor, y_true: torch.Tensor
     ) -> torch.Tensor:
+        """Compute the metric and filter out NaNs if necessary.
+
+        Parameters
+        ----------
+        y_pred : torch.Tensor
+            Prediction labels.
+        y_true : torch.Tensor
+            Ground truth labels.
+
+        Returns
+        -------
+        torch.Tensor
+            Metric result.
+        """
         if y_pred.ndim == 1:
             y_pred = y_pred.unsqueeze(-1)
 
@@ -186,9 +238,9 @@ class MetricWrapper:
                 except Exception as e:
                     if (
                         str(e)
-                        == "No positive samples in targets, true positive value"
-                        "should be meaningless. Returning zero tensor in"
-                        "true positive score"
+                        == "No positive samples in targets, true positive "
+                        "value should be meaningless. Returning zero tensor"
+                        "in true positive score"
                     ):
                         pass
                     else:
@@ -207,9 +259,29 @@ class MetricWrapper:
     def __call__(
         self, y_pred: torch.Tensor, y_true: torch.Tensor
     ) -> torch.Tensor:
+        """Compute the metric when the class is called.
+
+        Parameters
+        ----------
+        y_pred : torch.Tensor
+            Prediction labels.
+        y_true : torch.Tensor
+            Ground truth labels.
+
+        Returns
+        -------
+        torch.Tensor
+            Metric result.
+        """
         return self.compute(y_pred, y_true)
 
     def __repr__(self) -> str:
+        """Interpret the class when printed.
+
+        Returns
+        -------
+        The full string to print.
+        """
         full_str = f"{self.metric.__name__}"
 
         if self.thresholder is not None:

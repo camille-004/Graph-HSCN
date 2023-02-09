@@ -1,3 +1,4 @@
+"""Package to register necessary loss functions."""
 import glob
 from os.path import basename, dirname, isfile, join
 

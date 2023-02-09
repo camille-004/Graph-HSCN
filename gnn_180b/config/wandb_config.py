@@ -1,9 +1,21 @@
+"""Custom WandB config."""
 from torch_geometric.graphgym.register import register_config
 from yacs.config import CfgNode as CN
 
 
 @register_config("wandb_cfg")
-def set_cfg_wandb(cfg):
+def set_cfg_wandb(cfg: CN):
+    """Define a custom config to extend split options.
+
+    Parameters
+    ----------
+    cfg : CN
+        Yacs config used by GraphGym.
+
+    Returns
+    -------
+    None
+    """
     # WandB group
     cfg.wandb = CN()
 

@@ -1,3 +1,4 @@
+"""Package to register custom encoders."""
 import glob
 from os.path import basename, dirname, isfile, join
 

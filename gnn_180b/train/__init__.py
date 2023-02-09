@@ -1,3 +1,4 @@
+"""Customized training pipeline."""
 import glob
 from os.path import basename, dirname, isfile, join
 

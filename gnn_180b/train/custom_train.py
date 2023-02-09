@@ -1,32 +1,64 @@
+"""Customized training pipeline."""
 import logging
 import time
+from typing import Literal
 
 import numpy as np
 import torch
-from torch_geometric.graphgym.checkpoint import (
-    clean_ckpt,
-    load_ckpt,
-    save_ckpt,
-)
+from torch_geometric.data import Data
+from torch_geometric.graphgym.checkpoint import clean_ckpt, save_ckpt
 from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.loss import compute_loss
+from torch_geometric.graphgym.model_builder import GraphGymModule
 from torch_geometric.graphgym.register import register_train
 from torch_geometric.graphgym.utils.epoch import is_ckpt_epoch, is_eval_epoch
 
+import wandb
+from gnn_180b.logger import CustomLogger
 from gnn_180b.util import cfg_to_dict, flatten_dict, make_wandb_name
 
 
+Split = Literal["train", "val", "test"]
+
+
 def train_epoch(
-    logger, loader, model, optimizer, scheduler, batch_accumulation
-):
+    logger: CustomLogger,
+    loader: Data,
+    model: GraphGymModule,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.StepLR,
+    batch_accumulation: int,
+) -> None:
+    """Define a training epoch.
+
+    Parameters
+    ----------
+    logger : CustomLogger
+        Logger to use.
+    loader : Data
+        Data to be loaded and trained on.
+    model : GraphGymModule
+        Model to train.
+    optimizer : torch.optim.Optimizer
+        Optimizer used by model.
+    scheduler : torch.optim.lr_scheduler.StepLR
+        LR scheduler used by model.
+    batch_accumulation : int
+        Threshold for clipping the gradient norm of the parameters iterable.
+
+    Returns
+    -------
+    None
+    """
     model.train()
     optimizer.zero_grad()
     start = time.time()
-    deivce = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     for _iter, batch in enumerate(loader):
         batch.split = "train"
-        batch.to(deivce)
+        # batch.x = batch.x.type(torch.LongTensor)
+        batch.to(device)
         pred, true = model(batch)
         loss, pred_score = compute_loss(pred, true)
         _true = true.detach().to("cpu", non_blocking=True)
@@ -43,8 +75,8 @@ def train_epoch(
             optimizer.zero_grad()
 
         logger.update_stats(
-            true=_true,
-            pred=_pred,
+            y_true=_true,
+            y_pred=_pred,
             loss=loss.detach().cpu().item(),
             lr=scheduler.get_last_lr()[0],
             time_used=time.time() - start,
@@ -55,7 +87,29 @@ def train_epoch(
 
 
 @torch.no_grad()
-def eval_epoch(logger, loader, model, split="val"):
+def eval_epoch(
+    logger: CustomLogger,
+    loader: Data,
+    model: GraphGymModule,
+    split: Split = "val",
+) -> None:
+    """Define an evaluation epoch.
+
+    Parameters
+    ----------
+    logger : CustomLogger
+        Logger to use.
+    loader : Data
+        Data to be loaded.
+    model : GraphGymModule
+        Model to evaluate.
+    split : Split
+        Split to be used by epoch.
+
+    Returns
+    -------
+    None
+    """
     model.eval()
     start = time.time()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -75,8 +129,8 @@ def eval_epoch(logger, loader, model, split="val"):
         _pred = pred_score.detach().to("cpu", non_blocking=True)
 
         logger.update_stats(
-            true=_true,
-            pred=_pred,
+            y_true=_true,
+            y_pred=_pred,
             loss=loss.detach().cpu().item(),
             lr=0,
             time_used=time.time() - start,
@@ -88,7 +142,32 @@ def eval_epoch(logger, loader, model, split="val"):
 
 
 @register_train("custom_train")
-def custom_train(loggers, loaders, model, optimizer, scheduler):
+def custom_train(
+    loggers: list[CustomLogger],
+    loaders: list[Data],
+    model: GraphGymModule,
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler.StepLR,
+) -> None:
+    """Customize the training pipeline.
+
+    Parameters
+    ----------
+    loggers: list[CustomLogger]
+        List of loggers, by split.
+    loaders: list[Data]
+        List of loaders.
+    model : GraphGymModule
+        Model to train.
+    optimizer : torch.optim.Optimizer
+        Optimizer used by model.
+    scheduler : torch.optim.lr_scheduler.StepLR
+        LR scheduler used by model.
+
+    Returns
+    -------
+    None
+    """
     start_epoch = 0
 
     if start_epoch == cfg.optim.max_epoch:
@@ -97,11 +176,6 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         logging.info("Start from epoch {}".format(start_epoch))
 
     if cfg.wandb.use:
-        try:
-            import wandb
-        except:
-            raise ImportError("WandB not installed.")
-
         if cfg.wandb.name == "":
             wandb_name = make_wandb_name(cfg)
         else:
