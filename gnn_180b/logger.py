@@ -27,7 +27,7 @@ from gnn_180b.util import eval_spearmanr, reformat
 class CustomLogger(Logger):
     """Custom logger class."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.test_scores = False
         self._lr = None
