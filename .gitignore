@@ -137,3 +137,6 @@ results/
 
 # datasets directory
 datasets/
+
+# wandb
+wandb/

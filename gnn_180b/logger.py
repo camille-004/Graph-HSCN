@@ -1,7 +1,8 @@
 import logging
 import time
-from typing import Any, Literal
+from typing import Any
 
+import numpy as np
 import torch
 from sklearn.metrics import (
     accuracy_score,
@@ -17,6 +18,8 @@ from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.logger import Logger, infer_task
 from torch_geometric.graphgym.utils.io import dict_to_json
 
+import gnn_180b.metrics_ogb as metrics_ogb
+from gnn_180b.metric_wrapper import MetricWrapper
 from gnn_180b.util import eval_spearmanr
 
 
@@ -25,6 +28,7 @@ class CustomLogger(Logger):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.test_scores = False
         self._lr = None
         self._params = None
 
@@ -46,7 +50,6 @@ class CustomLogger(Logger):
         true = torch.cat(self._true).squeeze(-1)
         pred_score = torch.cat(self._pred)
         pred_int = self._get_pred_int(pred_score)
-
         reformat = lambda x: round(float(x), cfg.round)
 
         return {
@@ -68,16 +71,62 @@ class CustomLogger(Logger):
             ),
         }
 
+    def classification_multilabel(self) -> dict[str, float]:
+        true, pred_score = torch.cat(self._true), torch.cat(self._pred)
+        reformat = lambda x: round(float(x), cfg.round)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        # Send to GPU to speed up torchmetrics if possible
+        true = true.to(device)
+        pred_score = pred_score.to(device)
+        acc = MetricWrapper(
+            metric="accuracy",
+            target_nan_mask="ignore-mean-label",
+            threshold=0.0,
+            cast_to_int=True,
+            task="binary"
+        )
+        print(acc)
+        ap = MetricWrapper(
+            metric="averageprecision",
+            target_nan_mask="ignore-mean-label",
+            cast_to_int=True,
+            task="binary"
+        )
+
+        res = {
+            "accuracy": reformat(acc(pred_score, true)),
+            "ap": reformat(ap(pred_score, true)),
+        }
+
+        if self.test_scores:
+            true = true.cpu().numpy()
+            pred_score = pred_score.cpu().numpy()
+            ogb = {
+                "accuracy": reformat(
+                    metrics_ogb.eval_acc(true, (pred_score > 0).astype(int))[
+                        "acc"
+                    ]
+                ),
+                "ap": reformat(metrics_ogb.eval_ap(true, pred_score)["ap"]),
+            }
+            assert np.isclose(ogb["accuracy"], res["accuracy"])
+            assert np.isclose(ogb["ap"], res["ap"])
+
+        return res
+
     def regression(self) -> dict[str, float]:
         true, pred = torch.cat(self._true), torch.cat(self._pred)
         reformat = lambda x: round(float(x), cfg.round)
 
         return {
             "mae": reformat(mean_absolute_error(true, pred)),
-            "r2": reformat(r2_score(true, pred, multioutput="uniformaverage")),
-            "spearmanr": reformat(eval_spearmanr(true.numpy(), pred.numpy()))[
-                "spearmanr"
-            ],
+            "r2": reformat(
+                r2_score(true, pred, multioutput="uniform_average")
+            ),
+            "spearmanr": reformat(
+                eval_spearmanr(true.numpy(), pred.numpy())["spearmanr"]
+            ),
             "mse": reformat(mean_squared_error(true, pred)),
             "rmse": reformat(mean_squared_error(true, pred, squared=False)),
         }
@@ -122,6 +171,8 @@ class CustomLogger(Logger):
                 task_stats = self.classification_binary()
             case "classification_multi":
                 task_stats = self.classification_multi()
+            case "classification_multilabel":
+                task_stats = self.classification_multilabel()
             case other:
                 raise ValueError(
                     "Task has to be regression or classification."

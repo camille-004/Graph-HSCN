@@ -18,7 +18,3 @@ def pre_transform_in_memory(dataset, transform_func, show_progress=False):
     dataset._indices = None
     dataset._data_list = data_list
     dataset.data, dataset.slices = dataset.collate(data_list)
-
-
-def posenc_stats():
-    pass

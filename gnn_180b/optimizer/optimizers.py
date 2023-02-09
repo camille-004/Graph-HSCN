@@ -12,36 +12,37 @@ from torch_geometric.graphgym.register import (
 
 
 @register_optimizer("adagrad")
-def adagrad_optimizer(
-    params: Iterator[Parameter], optimizer_config: OptimizerConfig
-) -> Adagrad:
-    if optimizer_config.optimizer == "adagrad":
+def adagrad_optimizer(params: Iterator[Parameter]) -> Adagrad:
+    if cfg.optim.optimizer == "adagrad":
         optimizer = Adagrad(
             params,
-            lr=optimizer_config.base_lr,
-            weight_decay=optimizer_config.weight_decay,
+            lr=cfg.optim.base_lr,
+            weight_decay=cfg.optim.weight_decay,
         )
         return optimizer
 
 
 @register_optimizer("adamW")
-def adamW_optimizer(
-    params: Iterator[Parameter], optimizer_config: OptimizerConfig
-) -> AdamW:
-    if optimizer_config.optimizer == "adamW":
+def adamW_optimizer(params: Iterator[Parameter]) -> AdamW:
+    if cfg.optim.optimizer == "adamW":
         optimizer = AdamW(
             params,
-            lr=optimizer_config.base_lr,
-            weight_decay=optimizer_config.weight_decay,
+            lr=cfg.optim.base_lr,
+            weight_decay=cfg.optim.weight_decay,
         )
         return optimizer
 
 
-@register_scheduler("reduce_on_pleateau")
-def plateau_scheduler(
-    optimizer: Optimizer, scheduler_config: SchedulerConfig
-) -> ReduceLROnPlateau:
-    if scheduler_config.scheduler == "reduce_on_plateau":
+@register_scheduler("reduce_on_plateau")
+def plateau_scheduler(optimizer: Optimizer) -> ReduceLROnPlateau:
+    if cfg.optim.scheduler == "reduce_on_plateau":
+        if cfg.train.eval_period != 1:
+            raise ValueError(
+                "When config train.eval_period is not 1, the "
+                "optim.schedule_patience of ReduceLROnPlateau doesn't behave as"
+                "intended."
+            )
+
         metric_mode = "min"
         scheduler = ReduceLROnPlateau(
             optimizer=optimizer,

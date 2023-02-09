@@ -17,7 +17,8 @@ from gnn_180b.loader.dataset.peptides_structural import (
     PeptidesStructuralDataset,
 )
 from gnn_180b.loader.split_generator import prepare_splits, set_dataset_splits
-from gnn_180b.transform.transforms import posenc_stats, pre_transform_in_memory
+from gnn_180b.transform.posenc_stats import compute_posenc_stats
+from gnn_180b.transform.transforms import pre_transform_in_memory
 
 
 def log_loaded_dataset(dataset, _format, name) -> None:
@@ -78,7 +79,6 @@ def load_dataset(format, name, data_dir):
         raise ValueError(f"Unknown data format: {format}")
 
     log_loaded_dataset(dataset, format, name)
-
     pe_enabled_list = []
 
     for k, pe_cfg in cfg.items():
@@ -108,7 +108,7 @@ def load_dataset(format, name, data_dir):
         pre_transform_in_memory(
             dataset,
             partial(
-                posenc_stats,
+                compute_posenc_stats,
                 pe_types=pe_enabled_list,
                 is_undirected=is_undirected,
                 cfg=cfg,

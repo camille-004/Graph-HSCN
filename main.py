@@ -21,6 +21,9 @@ from torch_geometric.graphgym.optim import (
     create_optimizer,
     create_scheduler,
 )
+from torch_geometric.graphgym.register import train_dict
+from torch_geometric.graphgym.train import train
+from torch_geometric.graphgym.utils.agg_runs import agg_runs
 from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
 from yacs.config import CfgNode
@@ -28,6 +31,7 @@ from yacs.config import CfgNode
 # Register custom modules
 import gnn_180b  # noqa
 from gnn_180b.logger import create_logger
+from gnn_180b.train.custom_train import custom_train
 
 
 def new_optim_config(_cfg: CfgNode) -> OptimizerConfig:
@@ -103,13 +107,19 @@ if __name__ == "__main__":
             f"split_index = {cfg.dataset.split_index}"
         )
         logging.info(f"    Starting now: {datetime.datetime.now()}")
-        loader = create_loader()
+        loaders = create_loader()
         loggers = create_logger()
         model = create_model()
         optimizer = create_optimizer(model.parameters(), new_optim_config(cfg))
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))
-
         logging.info(model)
         logging.info(cfg)
         cfg.params = params_count(model)
         logging.info("Num. parameters: {}".format(cfg.params))
+        custom_train(loggers, loaders, model, optimizer, scheduler)
+        agg_runs(cfg.out_dir, cfg.metric_best)
+
+        if args.mark_done:
+            os.rename(args.cfg_file, "{}_done".format(args.cfg_file))
+
+        logging.info(f"[*] All done: {datetime.datetime.now()}")

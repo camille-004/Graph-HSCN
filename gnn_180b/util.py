@@ -1,5 +1,13 @@
+import logging
+from functools import reduce
+
 import numpy as np
+import torch
 from scipy.stats import stats
+from yacs.config import CfgNode
+
+
+EPS = 1e-5
 
 
 def eval_spearmanr(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
@@ -19,3 +27,104 @@ def eval_spearmanr(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
             )
 
     return {"spearmanr": sum(res_list) / len(res_list)}
+
+
+def _get_rank(values):
+    arange = torch.arange(
+        values.shape[0], dtype=values.dtype, device=values.device
+    )
+    val_sorter = torch.argsort(values, dimm=0)
+    val_rank = torch.empty_like(values)
+
+    if values.ndim == 1:
+        val_rank[val_sorter] = arange
+    elif values.ndim == 2:
+        for ii in range(val_rank.shape[1]):
+            val_rank[val_sorter[:, ii], ii] = arange
+    else:
+        raise ValueError(
+            f"Only supports tensors of dimensions 1 and 2. Provided dim=`{values.ndim}`."
+        )
+
+    return val_rank
+
+
+def pearsonr(
+    y_pred: torch.Tensor,
+    y_true: torch.Tensor,
+    reduction: str = "elementwise_mean",
+) -> torch.Tensor:
+    pred, true = y_pred.to(torch.float32), y_true.to(torch.float32)
+
+    shifted_x = pred - torch.mean(pred, dim=0)
+    shifted_y = true - torch.mean(true, dim=0)
+    sigma_x = torch.sqrt(torch.sum(shifted_x**2, dim=0))
+    sigma_y = torch.sqrt(torch.sum(shifted_y**2, dim=0))
+
+    pearson = torch.sum(shifted_x * shifted_y, dim=0) / (
+        sigma_x * sigma_y + EPS
+    )
+    pearson = torch.clamp(pearson, min=-1, max=1)
+    pearson = reduce(pearson, reduction=reduction)
+    return pearson
+
+
+def spearmanr(
+    y_pred: torch.Tensor,
+    y_true: torch.Tensor,
+    reduction: str = "elementwise_mean",
+) -> torch.Tensor:
+    spearman = pearsonr(
+        _get_rank(y_pred), _get_rank(_y_true), reduction=reduction
+    )
+    return spearman
+
+
+def make_wandb_name(cfg: CfgNode) -> str:
+    dataset_name = cfg.dataset.format
+
+    if dataset_name.startswith("OGB"):
+        dataset_name = dataset_name[3:]
+    if dataset_name.startswith("PyG-"):
+        dataset_name = dataset_name[4:]
+    if cfg.dataset.name != "none":
+        dataset_name += "-" if dataset_name != "" else ""
+        dataset_name += cfg.dataset.name
+
+    model_name = cfg.model.type
+
+    if cfg.model.type in ["gnn", "custom_gnn"]:
+        model_name += f"{cfg.gnn.layer_type}"
+
+    model_name += f".{cfg.name_tag}" if cfg.name_tag else ""
+    name = f"{dataset_name}.{model_name}.r{cfg.run_id}"
+    return name
+
+
+def flatten_dict(metrics: dict) -> dict:
+    prefixes = ["train", "val", "test"]
+    result = {}
+
+    for i in range(len(metrics)):
+        _stats = metrics[i][-1]
+        result.update({f"{prefixes[i]} / {k}": v for k, v in _stats.items()})
+
+    return result
+
+
+def cfg_to_dict(cfg_node: CfgNode, key_list: list = []) -> CfgNode | dict:
+    _VALID_TYPES = {tuple, list, str, int, float, bool}
+
+    if not isinstance(cfg_node, CfgNode):
+        if type(cfg_node) not in _VALID_TYPES:
+            logging.warning(
+                f"Key {'.'.join(key_list)} with value {type(cfg_node)} is not"
+                f"a valid type; valid types: {_VALID_TYPES}"
+            )
+        return cfg_node
+    else:
+        cfg_dict = dict(cfg_node)
+        for k, v in cfg_dict.items():
+            cfg_dict[k] = cfg_to_dict(v, key_list + [k])
+
+        return cfg_dict

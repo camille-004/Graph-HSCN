@@ -15,8 +15,5 @@ def extended_optim_cfg(cfg):
     # ReduceLROnPlateau: Lower bound on the learning rate
     cfg.optim.min_lr = 0.0
 
-    # For schedulers with warm-up phase, set the warm-up number of epochs
-    cfg.optim.num_warmup_epochs = 50
-
     # Clip gradient norms while training
     cfg.optim.clip_grad_norm = False
