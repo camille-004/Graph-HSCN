@@ -11,7 +11,41 @@ from gnn_180b.util import negate_edge_index
 
 
 class MultiHeadAttentionLayer(nn.Module):
-    """Multi-head attention module."""
+    """Multi-head attention module.
+
+    Attributes
+    ----------
+    gamma : float
+        Parameter for the self-attention mechanism.
+    in_channels : int
+        Number of input channels.
+    out_channels : int
+        Number of output channels.
+    num_heads : int
+        Number of heads in the self-attention mechanism.
+    full_graph : bool
+        Indicates whether the attention mechanism should be performed on the
+        full graph.
+    fake_edge_emb : torch.Tensor
+        Edge representation of fake edges.
+    use_bias : bool
+        Indicates whether bias should be used in the linear layers.
+    Q : Linear
+        Linear layer for query.
+    K : Linear
+        Linear layer for key.
+    E : Linear
+        Linear layer for edge representation.
+    Q_2 : Linear
+        Linear layer for query for the second self-attention mechanism.
+    K_2 : Linear
+        Linear layer for key for the second self-attention mechanism.
+    E_2 : Linear
+        Linear layer for edge representation for the second self-attention
+        mechanism.
+    V : Linear
+        Linear layer for value.
+    """
 
     def __init__(
         self,
@@ -154,7 +188,33 @@ class MultiHeadAttentionLayer(nn.Module):
 
 
 class SANLayer(nn.Module):
-    """SANLayer module."""
+    """Self-Attention Network (SAN) Layer.
+
+    Parameters
+    ----------
+    gamma : float
+        The scaling factor for the attention mechanism.
+    in_channels : int
+        The number of input channels.
+    out_channels : int
+        The number of output channels.
+    num_heads : int
+        The number of attention heads to use.
+    full_graph : bool
+        Whether to use the full graph.
+    fake_edge_emb : nn.Embedding
+        The fake edge embeddings.
+    dropout : float
+        The probability of an element to be zeroed.
+    layer_norm : bool, optional
+        Use layer normalization or not (default: False).
+    batch_norm : bool, optional
+        Use batch normalization or not (default: False).
+    residual : bool, optional
+        Use residual connection or not (default: True).
+    use_bias : bool, optional
+        Whether to use bias in the linear layers or not (default: False).
+    """
 
     def __init__(
         self,
@@ -162,8 +222,8 @@ class SANLayer(nn.Module):
         in_channels: int,
         out_channels: int,
         num_heads: int,
-        full_graph,
-        fake_edge_emb,
+        full_graph: bool,
+        fake_edge_emb: nn.Embedding,
         dropout: float,
         layer_norm=False,
         batch_norm=False,

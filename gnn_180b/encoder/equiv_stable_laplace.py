@@ -8,9 +8,22 @@ from torch_geometric.graphgym.register import register_node_encoder
 
 @register_node_encoder("EquivStableLapPE")
 class EquivStableLapPENodeEncoder(nn.Module):
-    """
-    Equivariant and Stable Laplace Positional Embedding node encoder module.
+    """Equivariant and Stable Laplace Positional Embedding node encoder module.
 
+    Parameters
+    ----------
+    dim_emb : int
+        Dimension of the embedding.
+
+    Attributes
+    ----------
+    raw_norm : nn.BatchNorm1d
+        Batch normalization layer to normalize the raw eigenvector.
+    linear_encoder_eigvec: Linear
+        Linear layer to convert the raw eigenvector to the final embedding.
+
+    Notes
+    -----
     Equivariant = output remains unchanged when input is transformed, such as
     permuting nodes of the graph.
     Stable = output remains unchanged under small perturbations of the input.

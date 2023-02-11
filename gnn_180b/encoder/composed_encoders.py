@@ -1,3 +1,4 @@
+"""Module for composing positional encoders."""
 import torch.nn as nn
 from torch_geometric.data import Data
 from torch_geometric.graphgym.config import cfg
@@ -22,7 +23,9 @@ pe_encs = {
 def concat_node_encoders(
     encoder_classes: list, pe_enc_names: list
 ) -> type[nn.Module]:
-    """Factory to create a new Encoder class that concatenates functionality
+    """Concatenate two node encoders.
+
+    Factory to create a new Encoder class that concatenates functionality
     of a given list of two encoder classes. First encoder should be
     dataset-specific, and the second a PE encoder.
 
@@ -41,13 +44,41 @@ def concat_node_encoders(
     """
 
     class Concat2NodeEncoder(nn.Module):
-        """Encoder that concatenates two node encoders."""
+        """Encoder that concatenates two node encoders.
+
+        Class Attributes
+        ----------------
+        enc1_cls : type
+            Class type of the first encoder.
+        enc2_cls : type
+            Class type of the second encoder.
+        enc2_name : str
+            Name of the second encoder.
+
+        Methods
+        -------
+        __init__(dim_emb: int | None = None)
+            Initializes the Concat2NodeEncoder class with the specified
+            embedding dimension.
+        forward(batch: Data) -> Data
+            Combine the forward methods of both encoders.
+
+        Parameters
+        ----------
+        dim_emb : int | None, optional
+            Dimension of the embedding, by default None.
+
+        Returns
+        -------
+        Data
+            Result of the forward pass.
+        """
 
         enc1_cls = None
         enc2_cls = None
         enc2_name = None
 
-        def __init__(self, dim_emb: None) -> None:
+        def __init__(self, dim_emb: int | None = None) -> None:
             super().__init__()
 
             if (

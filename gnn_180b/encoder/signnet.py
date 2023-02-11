@@ -10,7 +10,44 @@ from yacs.config import CfgNode
 
 
 class MLP(nn.Module):
-    """Multi-layer perceptron."""
+    """Multi-layer perceptron.
+
+    Parameters
+    ----------
+    in_channels : int
+        Number of input channels.
+    hidden_channels : int
+        Number of hidden channels.
+    out_channels : int
+        Number of output channels.
+    num_layers : int
+        Number of layers in the MLP.
+    use_bn : bool, optional
+        Whether to use batch normalization, by default False.
+    use_ln : bool, optional
+        Whether to use layer normalization, by default False.
+    activation : str, optional
+        Activation function to use, by default "relu".
+    residual : bool, optional
+        Whether to use residual connections, by default False.
+
+    Attributes
+    ----------
+    fcs : nn.ModuleList
+        A list containing the fully connected layers.
+    bns : nn.ModuleList
+        A list containing the batch normalization layers.
+    lns : nn.ModuleList
+        A list containing the layer normalization layers.
+    activation : nn.Module
+        The activation function to use.
+    use_bn : bool
+        Whether to use batch normalization.
+    use_ln : bool
+        Whether to use layer normalization.
+    residual : bool
+        Whether to use residual connections.
+    """
 
     def __init__(
         self,
@@ -106,7 +143,25 @@ class MLP(nn.Module):
 
 
 class GIN(nn.Module):
-    """GIN implementation."""
+    """GIN implementation.
+
+    Parameters
+    ----------
+    in_channels : int
+        The number of input channels.
+    hidden_channels : int
+        The number of hidden channels.
+    out_channels : int
+        The number of output channels.
+    n_layers : int
+        The number of layers in the network.
+    use_bn : bool, optional (default=True)
+        Whether to use batch normalization.
+    dropout : float, optional (default=0.5)
+        The dropout probability.
+    activation : str, optional (default="relu")
+        The activation function to use.
+    """
 
     def __init__(
         self,
@@ -199,7 +254,40 @@ class GIN(nn.Module):
 
 
 class GINDeepSigns(nn.Module):
-    """Sign-invariant neural network with MLP aggregation."""
+    """Sign-invariant neural network with MLP aggregation.
+
+    Parameters
+    ----------
+    in_channels : int
+        The number of input channels.
+    hidden_channels : int
+        The number of hidden channels.
+    out_channels : int
+        The number of output channels.
+    num_layers : int
+        The number of layers.
+    k : int
+        The number of graph signals in the input.
+    dim_pe : int
+        The number of per-edge features.
+    rho_num_layers : int
+        The number of layers in the final MLP aggregation.
+    use_bn : bool, optional
+        Use batch normalization, by default False.
+    use_ln : bool, optional
+        Use layer normalization, by default False.
+    dropout : float, optional
+        The dropout rate, by default 0.5.
+    activation : str, optional
+        The activation function to use, by default "relu".
+
+    Attributes
+    ----------
+    enc : GIN
+        The GIN encoder.
+    rho : MLP
+        The final MLP aggregation.
+    """
 
     def __init__(
         self,
@@ -275,6 +363,36 @@ class MaskedGINDeepSigns(nn.Module):
     should not impact the final representation. Achieved by transforming the
     graph representation into a set representation which is then fed into an
     MLP.
+
+    Parameters
+    ----------
+    in_channels : int
+        The number of input channels.
+    hidden_channels : int
+        The number of hidden channels.
+    out_channels : int
+        The number of output channels.
+    num_layers : int
+        The number of layers.
+    dim_pe : int
+        The size of the set representation.
+    rho_num_layers : int
+        The number of layers for the rho module.
+    use_bn : bool, optional
+        Use batch normalization, by default False.
+    use_ln : bool, optional
+        Use layer normalization, by default False.
+    dropout : float, optional
+        The dropout rate (default: 0.5).
+    activation : str, optional
+        The activation function to use (default: "relu").
+
+    Attributes
+    ----------
+    enc : GIN
+        The GIN module for encoding the input graph.
+    rho : MLP
+        The MLP module for transforming the set representation.
     """
 
     def __init__(
@@ -385,6 +503,33 @@ class SignNetNodeEncoder(torch.nn.Module):
 
     Extends the GIN architecture by using sign-invariant graph aggregation to
     preserve the signs of the eigenvectors of the Laplacian.
+
+    Parameters
+    ----------
+    cfg : CfgNode
+        Configuration node with the necessary parameters.
+    dim_in : int
+        The size of the input feature space.
+    dim_emb : int
+        The desired size of the output node embeddings.
+    expand_x : bool, optional
+        Flag indicating whether the input node features should be expanded
+        before being concatenated with the sign-invariant aggregation, by
+        default True.
+
+    Attributes
+    ----------
+    model_type : str
+        The type of model used for the sign-invariant aggregation, either "MLP"
+        or "DeepSet".
+    pass_as_var : bool
+        Flag indicating whether the sign-invariant aggregation should be passed
+        as a separate variable.
+    linear_x : torch.nn.Module
+        A linear layer used to expand the input node features, if `expand_x` is
+        True.
+    sign_inv_net : torch.nn.Module
+        The sign-invariant aggregation model.
     """
 
     def __init__(

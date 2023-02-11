@@ -21,14 +21,56 @@ class PeptidesFunctionalDataset(InMemoryDataset):
     """Class for peptides functional dataset.
 
     10-label multi-label classification.
+
+    Parameters
+    ----------
+    root : str, optional
+        Root directory of the dataset. Default is "datasets".
+    _smiles2graph : Callable[[str], dict], optional
+        Function to convert SMILES strings into graphs. Default is the
+        `smiles2graph` function.
+    transform : BaseTransform or Callable , optional
+        Transform to apply on the data. Default is None.
+    pre_transform : BaseTransform or Callable, optional
+        Transform to apply before saving the processed data. Default is None.
+
+    Attributes
+    ----------
+    original_root : str
+        Root directory of the dataset.
+    smiles2graph : Callable[[str], dict]
+        Function to convert SMILES strings into graphs.
+    folder : str
+        Folder for the dataset.
+    url : str
+        URL for the dataset.
+    version : str
+        Version of the dataset.
+    url_stratified_split : str
+        URL for the stratified split.
+    md5sum_stratified_split : str
+        MD5 hash for the stratified split.
+    data : Tensor
+        Processed data.
+
+    Methods
+    -------
+    download()
+        Download the peptides data from the URL.
+    process()
+        Perform necessary processing on the raw Peptides data.
+    _md5sum(path)
+        Get the MD5 of a path.
+    get_idx_split()
+        Get split indices of the dataset.
     """
 
     def __init__(
         self,
         root: str = "datasets",
         _smiles2graph: Callable[[str], dict] = smiles2graph,
-        transform: BaseTransform | None = None,
-        pre_transform: BaseTransform | None = None,
+        transform: BaseTransform | Callable = None,
+        pre_transform: BaseTransform | Callable = None,
     ) -> None:
         self.original_root = root
         self.smiles2graph = _smiles2graph

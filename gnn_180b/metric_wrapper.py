@@ -20,7 +20,6 @@ from torchmetrics.functional import (
 
 from gnn_180b.util import pearsonr, spearmanr
 
-
 METRICS_CLASSIFICATION = {
     "accuracy": accuracy,
     "averageprecision": average_precision,
@@ -43,7 +42,24 @@ METRICS_DICT.update(METRICS_REGRESSION)
 
 
 class Thresholder:
-    """Perform thresholding on the labels if a metric requires a threshold."""
+    """Perform thresholding on the labels if a metric requires a threshold.
+
+    Parameters
+    ----------
+    threshold : float
+        The threshold value to apply.
+    operator : str or Callable, optional (default="greater")
+        The operator to use for the thresholding. Either a string representing
+        a comparison operator (e.g., "greater", "gt", "lower", "lt") or a
+        callable that takes two arrays as input and returns a boolean mask.
+    th_on_preds : bool, optional (default=True)
+        Whether to apply the threshold to the predictions.
+    th_on_true : bool, optional (default=False)
+        Whether to apply the threshold to the ground truth labels.
+    target_to_int : bool, optional (default=False)
+        Whether to convert the ground truth labels to integers after
+        thresholding.
+    """
 
     def __init__(
         self,
@@ -143,13 +159,31 @@ class Thresholder:
 
 
 class MetricWrapper:
-    """A class to compute a metric if it is given as a Callable or a string."""
+    """A class to compute a metric if it is given as a Callable or a string.
+
+    Parameters
+    ----------
+    metric : str or Callable
+        The metric to compute. If a string is provided, it should correspond
+        to a key in the `METRICS_DICT` dictionary.
+    threshold_kwargs : dict, optional
+        Keyword arguments to pass to the `Thresholder` class, by default None.
+    target_nan_mask : str or int, optional
+        The mask to apply on NaN values in the `y_true` tensor. This can either
+        be an int, a float, the string "ignore-flatten", or
+        "ignore-mean-label", by default None.
+
+    Returns
+    -------
+    torch.Tensor
+        Metric result.
+    """
 
     def __init__(
         self,
         metric: str | Callable,
-        threshold_kwargs: dict[str, Any] | None = None,
-        target_nan_mask: str | int | None = None,
+        threshold_kwargs: dict[str, Any] = None,
+        target_nan_mask: str | int = None,
         **kwargs,
     ):
         self.metric = (

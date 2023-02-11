@@ -34,7 +34,20 @@ def reformat(x: Any) -> float:
 
 
 def eval_spearmanr(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
-    """Compute Spearman Rho averaged across tasks."""
+    """Compute Spearman Rho averaged across tasks.
+
+    Parameters
+    ----------
+    y_true : np.ndarray
+        Ground truth labels.
+    y_pred : np.ndarray
+        Prediction labels.
+
+    Returns
+    -------
+    dict[str, float]
+        A dict with the name of the metric and the value.
+    """
     res_list = []
 
     if y_true.ndim == 1:
@@ -52,7 +65,20 @@ def eval_spearmanr(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
     return {"spearmanr": sum(res_list) / len(res_list)}
 
 
-def _get_rank(values):
+def _get_rank(values: torch.Tensor) -> torch.Tensor:
+    """Compute the rank of a tensor.
+
+    Parameters
+    ----------
+    values : torch.Tensor
+        Tensor of which to compute the rank.
+
+    Returns
+    -------
+    torch.Tensor
+        A tensor with the same shape and dtype as the input tensor, where each
+        element is the rank of the corresponding element in the input tensor.
+    """
     arange = torch.arange(
         values.shape[0], dtype=values.dtype, device=values.device
     )

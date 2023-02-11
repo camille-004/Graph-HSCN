@@ -15,6 +15,31 @@ class LapPENodeEncoder(nn.Module):
     Concatenates node's initial feature representation with its positional
     encoding, allowing the GNN to use the node's relative position in the
     graph.
+
+    Parameters
+    ----------
+    dim_emb : int
+        Dimension of the embedding.
+    expand_x : bool, optional
+        Whether to expand the node's initial feature representation, by default
+        True.
+
+    Attributes
+    ----------
+    model_type : str
+        Type of the model.
+    pass_as_var : bool
+        Whether to pass the Laplacian eigenvalues as a variable or not.
+    fc_x : nn.Module
+        Linear layer to expand the node's initial feature representation.
+    fc_A : nn.Module
+        Linear layer to compute the positional encoding.
+    raw_norm : nn.Module
+        Batch normalization layer to normalize the Laplacian eigenvalues.
+    pe_encoder : nn.Module
+        Transformer or DeepSet encoder.
+    post_mlp : nn.Module
+        MLP to apply post-pooling.
     """
 
     def __init__(self, dim_emb: int, expand_x: bool = True) -> None:

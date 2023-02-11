@@ -25,7 +25,17 @@ from gnn_180b.util import eval_spearmanr, reformat
 
 
 class CustomLogger(Logger):
-    """Custom logger class."""
+    """Custom logger class.
+
+    Attributes
+    ----------
+    test_scores : bool
+        Boolean indicating whether to compare with the OGB metrics.
+    _lr : float
+        Current learning rate.
+    _params : int
+        Number of parameters in the model.
+    """
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

@@ -73,6 +73,7 @@ def join_list(l1: list, l2: list) -> list:
         )
         while len(l1) > len(l2):
             l2.append(l2[-1])
+
     if len(l1) < len(l2):
         print(
             f">> W: Padding the first list (len={len(l1)}) with the last "
@@ -80,11 +81,14 @@ def join_list(l1: list, l2: list) -> list:
         )
         while len(l1) < len(l2):
             l1.append(l1[-1])
+
     assert len(l1) == len(
         l2
     ), "Results with different seeds must have the save format"
+
     for i in range(len(l1)):
         l1[i] += l2[i]
+
     return l1
 
 
@@ -111,12 +115,13 @@ def agg_runs(_dir: str, metric_best: str = "auto") -> None:
     for seed in os.listdir(_dir):
         if is_seed(seed):
             dir_seed = os.path.join(_dir, seed)
-
             split = "val"
+
             if split in os.listdir(dir_seed):
                 dir_split = os.path.join(dir_seed, split)
                 fname_stats = os.path.join(dir_split, "stats.json")
                 stats_list = json_to_dict_list(fname_stats)
+
                 if metric_best == "auto":
                     if "accuracy" in stats_list[0]:
                         metric = "accuracy"
@@ -146,21 +151,26 @@ def agg_runs(_dir: str, metric_best: str = "auto") -> None:
                     ][0]
                     print(stats_best)
                     stats_list = [[stats] for stats in stats_list]
+
                     if results[split] is None:
                         results[split] = stats_list
                     else:
                         results[split] = join_list(results[split], stats_list)
+
                     if results_best[split] is None:
                         results_best[split] = [stats_best]
                     else:
                         results_best[split] += [stats_best]
+
     results = {k: v for k, v in results.items() if v is not None}  # rm None
     results_best = {
         k: v for k, v in results_best.items() if v is not None
     }  # rm None
+
     for key in results:
         for i in range(len(results[key])):
             results[key][i] = agg_dict_list(results[key][i])
+
     for key in results_best:
         results_best[key] = agg_dict_list(results_best[key])
 

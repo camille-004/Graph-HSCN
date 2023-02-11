@@ -2,20 +2,40 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.nn import GRU
-from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.register import register_pooling
-from torch_geometric.nn import Linear, global_mean_pool
+from torch_geometric.nn import Linear
 
 
 @register_pooling("sparse_attention")
 class SparseAttention(nn.Module):
     """Sparse global attention model.
 
-    Uses an RNN to maintain an internal state that summarizes information from
+    Uses a RNN to maintain an internal state that summarizes information from
     all nodes in the graph. Better for smaller graphs since the number of
     attention operations is much smaller.
+
+    Parameters
+    ----------
+    in_channels : int
+        The number of input channels.
+    out_channels : int
+        The number of output channels.
+    num_heads : int
+        The number of attention heads.
+    concat : bool, optional
+        If True, concatenates the attention heads along the channel dimension,
+        by default True.
+
+    Attributes
+    ----------
+    Q : Linear
+        Query the relationships between the nodes of the graph.
+        Representation of what the model wants to attend to for each node.
+    K : Linear
+        Compute the attention keys.
+    V : Linear
+        Compute the attention values.
     """
 
     def __init__(
@@ -23,7 +43,6 @@ class SparseAttention(nn.Module):
         in_channels: int,
         out_channels: int,
         num_heads: int,
-        dropout: float,
         concat: bool = True,
     ) -> None:
         super().__init__()
@@ -41,7 +60,6 @@ class SparseAttention(nn.Module):
         self.Q = Linear(in_channels, num_heads * out_channels)
         self.K = Linear(in_channels, num_heads * out_channels)
         self.V = Linear(in_channels, num_heads * out_channels)
-        self.layer_norm = nn.LayerNorm(num_heads * out_channels)
 
     def forward(
         self, x: torch.Tensor, edge_index: torch.Tensor
@@ -78,10 +96,6 @@ class SparseAttention(nn.Module):
             K_H.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
         )
         V = V.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
-
-        if cfg.dataset.task == "graph":
-            x = global_mean_pool(x, edge_index[0], None)
-
         x = (
             x.view(b, h, self.in_channels)
             .transpose(1, 0)
@@ -93,13 +107,11 @@ class SparseAttention(nn.Module):
         # attention heads.
         x = torch.einsum("ibd,jbd->ij", Q_h, x) / np.sqrt(self.out_channels)
         x = torch.softmax(x, dim=-1)
-        x = F.dropout(x, p=self.dropout, training=self.training)
 
         # Dot-product between attention scores and attention keys.
         x = torch.einsum("ij,jbd->ibd", x, K_H)
         x = x.view(b, h, n, self.out_channels)
         x = x.tranpose(2, 1).contiguous().view(b, n, h * self.out_channels)
-        x = self.layer_norm(x)
 
         if self.concat:
             x = x.mean(dim=2)
@@ -111,20 +123,37 @@ class SparseAttention(nn.Module):
 
 @register_pooling("set2set")
 class Set2Set(nn.Module):
-    """Set2Set global attention module."""
+    """Set2Set global attention module.
+
+    Attributes
+    ----------
+    input_size : int
+        The size of the input tensor.
+    hidden_size : int
+        The size of the hidden layer of the GRU modules.
+    num_heads : int
+        The number of heads in the attention mechanism.
+    gru_1 : GRU
+        The first GRU module.
+    gru_2 : GRU
+        The second GRU module.
+    fc : Linear
+        The fully-connected layer.
+    heads : nn.ModuleList
+        A list of linear modules that represent each head in the attention
+        mechanism.
+    """
 
     def __init__(
-        self, input_size: int, hidden_size: int, num_heads: int, dropout: float
+        self, input_size: int, hidden_size: int, num_heads: int
     ) -> None:
         super().__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_heads = num_heads
-        self.dropout = dropout
         self.gru_1 = GRU(input_size, hidden_size)
         self.gru_2 = GRU(hidden_size * 2, hidden_size)
         self.fc = Linear(hidden_size, input_size)
-        self.layer_norm = nn.LayerNorm(hidden_size)
         self.heads = nn.ModuleList(
             [Linear(hidden_size, hidden_size) for _ in range(num_heads)]
         )
@@ -159,14 +188,6 @@ class Set2Set(nn.Module):
 
         h_2, _ = self.gru_2(m.unsqueeze(0), h_0)
         h_2 = h_2.squeeze(0)
-
-        # Dropout after to ensure normalization is not disrupted.
-        h_2 = self.layer_norm(h_2)
-        h_2 = F.dropout(h_2, p=self.dropout, training=self.training)
-
-        if cfg.dataset.task == "graph":
-            h_2 = global_mean_pool(h_2, batch)
-
         outputs = []
 
         for head in self.heads:
