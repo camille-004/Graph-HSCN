@@ -1,4 +1,4 @@
-.PHONY: clean lint format test update_schema
+.PHONY: create_environment install clean lint format baselines
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 NAME = gnn_180b
@@ -32,6 +32,6 @@ format:
 	poetry run isort --skip-glob $(SRC_DIR)/tests --skip-glob $(SRC_DIR)/notebooks --profile=black --lines-after-imports 2 $(SRC_DIR) run.py agg_results/agg_runs.py
 	poetry run black $(SRC_DIR) run.py agg_results/agg_runs.py
 
-test:
-	@echo ">>> Running tests"
-	poetry run pytest
+baselines:
+	@echo ">>> Running baseline MPNNs on resampled citation networks"
+	sh run/run_baselines_citation.sh

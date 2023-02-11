@@ -6,11 +6,16 @@ This project is built on [poetry](https://python-poetry.org/) for dependency man
 The config files available for experiments are available in the `configs` directory. To run a repeated baseline GCN on the resampled Cora dataset, run the following:
 
 ```bash
-python run.py --cfg configs/gcn/cora_GCN.yaml --repeats 3
+python run.py --cfg configs/GCN/cora_GCN.yaml --repeats 3
+```
+
+**For the Week 5 checkpoint, simply run the following command in the root directory to set up your environment and run baseline models:**
+```bash
+make
 ```
 
 ## Acknowledgements
-The code in this project is heavily adapted (and modified) from the following repositories:
+The code in this project is heavily adapted and modified from the following repositories:
 1. [Long Range Graph Benchmark](https://github.com/vijaydwivedi75/lrgb)
 2. [torch_geometric GraphGym](https://github.com/pyg-team/pytorch_geometric/tree/master/graphgym)
 3. [Hierarchical Graph Net](https://github.com/rampasek/HGNet)
