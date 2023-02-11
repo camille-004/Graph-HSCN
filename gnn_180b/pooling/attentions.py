@@ -1,4 +1,5 @@
 """Define and register custom pooling modules."""
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,9 +38,9 @@ class SparseAttention(nn.Module):
         # Dynamically adjust attention paid to different parts of input
         # features, based on the relationships between the nodes in graph, to
         # improve representation learning.
-        self.fc_q = Linear(in_channels, num_heads * out_channels)
-        self.fc_k = Linear(in_channels, num_heads * out_channels)
-        self.fc_v = Linear(in_channels, num_heads * out_channels)
+        self.Q = Linear(in_channels, num_heads * out_channels)
+        self.K = Linear(in_channels, num_heads * out_channels)
+        self.V = Linear(in_channels, num_heads * out_channels)
         self.layer_norm = nn.LayerNorm(num_heads * out_channels)
 
     def forward(
@@ -65,14 +66,18 @@ class SparseAttention(nn.Module):
 
         # Reshape input tensor into shape (batch size, num_nodes,
         # output_channels).
-        q = self.fc_q(x).view(b, n, h, self.out_channels)
-        k = self.fc_k(x).view(b, n, h, self.out_channels)
-        v = self.fc_v(x).view(b, n, h, self.out_channels)
+        Q_h = self.Q(x).view(b, n, h, self.out_channels)
+        K_H = self.K(x).view(b, n, h, self.out_channels)
+        V = self.V(x).view(b, n, h, self.out_channels)
 
         # Transpose attention heads and reshape tensor.
-        q = q.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
-        k = k.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
-        v = v.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
+        Q_h = (
+            Q_h.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
+        )
+        K_H = (
+            K_H.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
+        )
+        V = V.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
 
         if cfg.dataset.task == "graph":
             x = global_mean_pool(x, edge_index[0], None)
@@ -86,12 +91,12 @@ class SparseAttention(nn.Module):
 
         # Compute attention scores and normalize with square root of
         # attention heads.
-        x = torch.einsum("ibd,jbd->ij", q, x) / torch.sqrt(self.out_channels)
+        x = torch.einsum("ibd,jbd->ij", Q_h, x) / np.sqrt(self.out_channels)
         x = torch.softmax(x, dim=-1)
         x = F.dropout(x, p=self.dropout, training=self.training)
 
         # Dot-product between attention scores and attention keys.
-        x = torch.einsum("ij,jbd->ibd", x, k)
+        x = torch.einsum("ij,jbd->ibd", x, K_H)
         x = x.view(b, h, n, self.out_channels)
         x = x.tranpose(2, 1).contiguous().view(b, n, h * self.out_channels)
         x = self.layer_norm(x)

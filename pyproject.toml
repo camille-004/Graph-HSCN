@@ -61,7 +61,8 @@ extend-ignore = """
     E203,
     F841,
     W503,
-    D107
+    D107,
+    D403
 """
 
 [tool.black]

@@ -144,7 +144,7 @@ def load_dataset(_format: str, name: str, data_dir: str) -> Data:
     if pe_enabled_list:
         start = time.perf_counter()
         logging.info(
-            f"Precomputing Positional Encoding statistics:"
+            f"Precomputing Positional Encoding statistics: "
             f"{pe_enabled_list} for all graphs..."
         )
 
@@ -162,8 +162,9 @@ def load_dataset(_format: str, name: str, data_dir: str) -> Data:
             show_progress=True,
         )
         elapsed = time.perf_counter() - start
-        time_str = time.strftime(
-            "%H:%M:%S", time.gmtime(elapsed) + f"{elapsed:.2f}"[-3:]
+        time_str = (
+            time.strftime("%H:%M:%S", time.gmtime(elapsed))
+            + f"{elapsed:.2f}"[-3:]
         )
         logging.info(f"Done! Took {time_str}")
 

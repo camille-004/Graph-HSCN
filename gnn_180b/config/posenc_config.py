@@ -22,7 +22,7 @@ def set_cfg_posenc(cfg: CN) -> None:
     cfg.posenc_EquivStableLapPE = CN()
 
     # Common arguments to all PE types.
-    for name in ["posenc_LapPE", "posenc_SignNet"]:
+    for name in ["posenc_LapPE", "posenc_SignNet", "posenc_EquivStableLapPE"]:
         pe_cfg = getattr(cfg, name)
 
         # Use extended positional encodings

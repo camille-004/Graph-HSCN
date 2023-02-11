@@ -6,7 +6,10 @@ from typing import Any, Literal
 import numpy as np
 import torch
 from scipy.stats import stats
+from torch_geometric.data import Data
 from torch_geometric.graphgym.config import cfg
+from torch_geometric.utils import remove_self_loops
+from torch_scatter import scatter
 from yacs.config import CfgNode
 
 EPS = 1e-5
@@ -254,3 +257,74 @@ def set_new_cfg_allowed(config: CfgNode, is_new_allowed: bool) -> None:
     for v in config.values():
         if isinstance(v, CfgNode):
             set_new_cfg_allowed(v, is_new_allowed)
+
+
+def negate_edge_index(
+    edge_index: torch.Tensor, batch: Data | None = None
+) -> torch.Tensor:
+    """Obtain a tensor representing the non-existent nodes in the graph.
+
+    Useful for multi-head attention, modeling the absense of connections
+    between nodes. Learn to distinguish between existing and missing edges in
+    the graph, better capturing the structure and relationships between nodes.
+
+    Parameters
+    ----------
+    edge_index : torch.Tensor
+        Input edge_index.
+    batch : Data
+        Input batch.
+
+    Returns
+    -------
+    torch.Tensor
+        Concatenated negative edge indices.
+    """
+    # If batch not provided, initialize as a tensor of zeros with the same
+    # number of elements as the maximum value in `edge_index`.
+    if batch is None:
+        batch = edge_index.new_zeros(edge_index.max().item() + 1)
+
+    batch_size = batch.max().item() + 1
+    one = batch.new_ones(batch.size(0))
+
+    # Calculate the number of nodes in each batch by accumulating the values of
+    # `one` into `batch_size` using the indices of `batch`.
+    num_nodes = scatter(one, batch, dim=0, dim_size=batch_size, reduce="add")
+
+    # Store the cumulative sum of the number of nodes in each batch.
+    cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
+    idx_0 = batch[edge_index[0]]
+
+    # Indices of start and end nodes of each edge.
+    idx_1 = edge_index[0] - cum_nodes[batch][edge_index[0]]
+    idx_2 = edge_index[1] - cum_nodes[batch][edge_index[1]]
+
+    negative_index_list = []
+
+    for i in range(batch_size):
+        n = num_nodes[i].item()
+        size = [n, n]
+
+        # Initialize adjacency matrix with ones.
+        adj = torch.ones(size, dtype=torch.short, device=edge_index.device)
+        flattened_size = n * n
+        adj = adj.view([flattened_size])
+        _idx_1 = idx_1[idx_0 == i]
+        _idx_2 = idx_2[idx_0 == i]
+        idx = _idx_1 * n + _idx_2
+
+        # Zero out the elements corresponding to the edges in the graph.
+        zero = torch.zeros(
+            _idx_1.numel(), dtype=torch.short, device=edge_index.device
+        )
+        scatter(zero, idx, dim=0, out=adj, reduce="mul")
+        adj = adj.view(size)
+
+        # Extract indices of the negative edges from adjacency matrix.
+        _edge_index = adj.nonzero(as_tuple=False).t().contiguous()
+        _edge_index, _ = remove_self_loops(_edge_index)
+        negative_index_list.append(_edge_index * cum_nodes[i])
+
+    edge_index_negative = torch.cat(negative_index_list, dim=1).contiguous()
+    return edge_index_negative

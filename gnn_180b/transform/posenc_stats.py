@@ -12,7 +12,6 @@ from torch_geometric.utils import (  # noqa
 )
 from yacs.config import CfgNode
 
-
 Normalization = Literal["L1", "L2", "abs-max"]
 
 
@@ -52,7 +51,7 @@ def compute_posenc_stats(
     else:
         N = data.x.shape[0]
 
-    laplacian_norm_type = cfg.posenc_LaPE.eigen.laplacian_norm.lower()
+    laplacian_norm_type = cfg.posenc_LapPE.eigen.laplacian_norm.lower()
 
     if laplacian_norm_type == "none":
         laplacian_norm_type = None
@@ -67,15 +66,19 @@ def compute_posenc_stats(
 
     if "LaPE" in pe_types or "EquivStableLapPE" in pe_types:
         L = to_scipy_sparse_matrix(
-            undir_edge_index, normalization=laplacian_norm_type, num_nodes=N
+            *get_laplacian(
+                undir_edge_index,
+                normalization=laplacian_norm_type,
+                num_nodes=N,
+            )
         )
         evals, evects = np.linalg.eigh(L.toarray())
 
         max_freqs, eigvec_norm = None, None
 
         if "LapPE" in pe_types:
-            max_freqs = cfg.posenc_LaPE.eigen.max_freqs
-            eigvec_norm = cfg.posenc_LaPE.eigen.eigvec_norm
+            max_freqs = cfg.posenc_LapPE.eigen.max_freqs
+            eigvec_norm = cfg.posenc_LapPE.eigen.eigvec_norm
         elif "EquivStableLapPE" in pe_types:
             max_freqs = cfg.posenc_EquivStableLLapPE.eigen.nax_freqs
             eigvec_norm = cfg.posenc_EquivStableLapPE.eigen.eigvec_norm
@@ -164,6 +167,7 @@ def get_lap_decomp_stats(
 
 def eigvec_normalizer(
     eig_vecs: torch.Tensor,
+    eig_vals: torch.Tensor,
     normalization: Normalization = "L2",
     eps: float = 1e-12,
 ):
@@ -173,6 +177,8 @@ def eigvec_normalizer(
     ----------
     eig_vecs : torch.Tensor
         Eigenvectors of data.
+    eig_vals : torch.Tensor
+        Eigenvalues of data.
     normalization : Normalization
         Normalization scheme.
     eps: float
