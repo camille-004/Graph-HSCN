@@ -6,6 +6,7 @@ RUN pip install poetry
 RUN poetry config virtualenvs.create false
 
 COPY ./poetry.lock ./pyproject.toml ./
+RUN poetry env use python3.10
 RUN poetry install --no-cache --only main
 
 COPY ./configs ./configs
