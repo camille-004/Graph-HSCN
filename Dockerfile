@@ -5,7 +5,7 @@ RUN pip install poetry
 
 RUN poetry config virtualenvs.create false
 
-COPY ./poetry.lock ./pyproject.tonml ./
+COPY ./poetry.lock ./pyproject.toml ./
 RUN poetry install --no-cache --only main
 
 COPY ./configs ./configs
