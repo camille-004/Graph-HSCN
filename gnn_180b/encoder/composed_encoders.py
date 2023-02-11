@@ -10,10 +10,10 @@ from gnn_180b.encoder.laplace import LapPENodeEncoder
 from gnn_180b.encoder.signnet import SignNetNodeEncoder
 
 # Dataset-specific node encoders.
-ds_encs = {"Atom": AtomEncoder}
+DS_ENCS: dict[str, type] = {"Atom": AtomEncoder}
 
 # Positional Encoding node encoders.
-pe_encs = {
+PE_ENCS: dict[str, type] = {
     "LapPE": LapPENodeEncoder,
     "SignNet": SignNetNodeEncoder,
     "EquivStableLapPE": EquivStableLapPENodeEncoder,
@@ -122,8 +122,8 @@ def concat_node_encoders(
         )
 
 
-for ds_enc_name, ds_enc_cls in ds_encs.items():
-    for pe_enc_name, pe_enc_cls in pe_encs.items():
+for ds_enc_name, ds_enc_cls in DS_ENCS.items():
+    for pe_enc_name, pe_enc_cls in PE_ENCS.items():
         register_node_encoder(
             f"{ds_enc_name}+{pe_enc_name}",
             concat_node_encoders([ds_enc_cls, pe_enc_cls], [pe_enc_name]),

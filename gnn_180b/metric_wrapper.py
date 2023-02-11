@@ -20,7 +20,7 @@ from torchmetrics.functional import (
 
 from gnn_180b.util import pearsonr, spearmanr
 
-METRICS_CLASSIFICATION = {
+METRICS_CLASSIFICATION: dict[str, Callable] = {
     "accuracy": accuracy,
     "averageprecision": average_precision,
     "confusion_matrix": confusion_matrix,
@@ -30,7 +30,7 @@ METRICS_CLASSIFICATION = {
     "recall": recall,
 }
 
-METRICS_REGRESSION = {
+METRICS_REGRESSION: dict[str, Callable] = {
     "mae": mean_absolute_error,
     "mse": mean_squared_error,
     "perasonr": pearsonr,
