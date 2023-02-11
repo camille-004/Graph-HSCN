@@ -94,7 +94,7 @@ class CustomLogger(Logger):
         return {
             "accuracy": reformat(accuracy_score(true, pred_int)),
             "f1": reformat(
-                f1_score(true, pred_int, average="macro", zero_division="0")
+                f1_score(true, pred_int, average="macro", zero_division=0)
             ),
         }
 
@@ -282,8 +282,8 @@ class CustomLogger(Logger):
                 **custom_stats,
             }
 
-        logging.info("{}: {}".format(self.name, stats))
-        dict_to_json(stats, "{}/stats.json".format(self.out_dir))
+        logging.info(f"{self.name}: {stats}")
+        dict_to_json(stats, f"{self.out_dir}/stats.json")
         self.reset()
         if cur_epoch < 3:
             logging.info(
