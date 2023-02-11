@@ -92,6 +92,7 @@ def custom_set_out_dir(_cfg: CfgNode, cfg_name: str, name_tag: str) -> None:
     """
     run_name = os.path.splitext(os.path.basename(cfg_name))[0]
     run_name += f"{name_tag}" if name_tag else ""
+    print(os.path.join(_cfg.out_dir, run_name))
     _cfg.out_dir = os.path.join(_cfg.out_dir, run_name)
 
 
@@ -109,7 +110,7 @@ def custom_set_run_dir(_cfg: CfgNode, _run_id: int) -> None:
     -------
     None
     """
-    _cfg.run_dir = os.path.join(_cfg.out_dir, "run_" + str(_run_id))
+    _cfg.run_dir = os.path.join(_cfg.out_dir, str(_run_id))
     makedirs_rm_exist(_cfg.run_dir)
 
 
@@ -173,11 +174,11 @@ if __name__ == "__main__":
         logging.info(model)
         logging.info(cfg)
         cfg.params = params_count(model)
-        logging.info("Num. parameters: {}".format(cfg.params))
+        logging.info(f"Num. parameters: {cfg.params}")
         custom_train(loggers, loaders, model, optimizer, scheduler)
         agg_runs(cfg.out_dir, cfg.metric_best)
 
         if args.mark_done:
-            os.rename(args.cfg_file, "{}_done".format(args.cfg_file))
+            os.rename(args.cfg_file, f"{args.cfg_file}_done")
 
         logging.info(f"[*] All done: {datetime.datetime.now()}")

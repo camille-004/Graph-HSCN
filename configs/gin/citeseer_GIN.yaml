@@ -1,10 +1,10 @@
 out_dir: results
 wandb:
   use: True
-  project: cora
+  project: citeseer
 dataset:
   format: PyG-Planetoid
-  name: Cora
+  name: Citeseer
   task: node
   task_type: classification
   transductive: True
@@ -25,7 +25,7 @@ gnn:
   layers_mp: 2
   layers_post_mp: 1
   dim_inner: 16
-  layer_type: gcnconv
+  layer_type: ginconv
   stage_type: stack
   batchnorm: True
   act: relu

@@ -9,7 +9,6 @@ from scipy.stats import stats
 from torch_geometric.graphgym.config import cfg
 from yacs.config import CfgNode
 
-
 EPS = 1e-5
 
 Reduction = Literal["elementwise_mean", "sum", "none"]
@@ -228,3 +227,30 @@ def cfg_to_dict(cfg_node: CfgNode, key_list: list = []) -> CfgNode | dict:
             cfg_dict[k] = cfg_to_dict(v, key_list + [k])
 
         return cfg_dict
+
+
+def set_new_cfg_allowed(config: CfgNode, is_new_allowed: bool) -> None:
+    """Allow merging new keys from other configs.
+
+    Set YACS config (and recursively its subconfigs) to allow merging new keys
+    from other configs.
+
+    Parameters
+    ----------
+    config : CfgNode
+        Config to merge.
+    is_new_allowed : bool
+        Whether a new config is allowed.
+
+    Returns
+    -------
+    None
+    """
+    config.__dict__[CfgNode.NEW_ALLOWED] = is_new_allowed
+    # Recursively set new_allowed state
+    for v in config.__dict__.values():
+        if isinstance(v, CfgNode):
+            set_new_cfg_allowed(v, is_new_allowed)
+    for v in config.values():
+        if isinstance(v, CfgNode):
+            set_new_cfg_allowed(v, is_new_allowed)

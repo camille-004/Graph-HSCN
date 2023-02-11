@@ -45,7 +45,13 @@ def pre_transform_in_memory(
     dataset.data, dataset.slices = dataset.collate(data_list)
 
 
-def resample_citation_network(data: Data, buffer: int = 2) -> Data:
+def resample_citation_network(
+    data: Data,
+    buffer: int = 2,
+    num_val: int = 500,
+    num_test: int = 1000,
+    train_examples_per_class: int = 20,
+) -> Data:
     """Adapted from https://github.com/rampasek/HGNet/ and modified.
 
     Find a set such that all selected nodes are at least k + 1
@@ -60,6 +66,12 @@ def resample_citation_network(data: Data, buffer: int = 2) -> Data:
         PyG Data object from Planetoid datasets.
     buffer : int
         Buffer value.
+    num_val : int
+        Number of validation examples in split.
+    num_test : int
+        Number of test examples in split.
+    train_examples_per_class : int
+        Number of examples per class in the training split.
 
     Returns
     -------
@@ -123,9 +135,7 @@ def resample_citation_network(data: Data, buffer: int = 2) -> Data:
     for c in range(num_classes):
         idx = (y == c).nonzero(as_tuple=False).view(-1)
         idx = idx[
-            rng.permutation(idx.size(0))[
-                : cfg.dataset.train_examples_per_class
-            ]
+            rng.permutation(idx.size(0))[:train_examples_per_class]
         ]  # Cora: shuffle 20 examples per class for training set
         data.train_mask[idx] = True
 
@@ -134,20 +144,20 @@ def resample_citation_network(data: Data, buffer: int = 2) -> Data:
     rm = (~used).nonzero(as_tuple=False).view(-1)
     num_remaining = rm.size(0)
     rm = rm[rng.permutation(num_remaining)]  # Shuffle
-    num_needed = cfg.dataset.num_val + cfg.dataset.num_test
+    num_needed = num_val + num_test
     print(f"Remaining: {num_remaining}, needed: {num_needed}")
 
     if num_needed > num_remaining:
-        num_val = cfg.dataset.num_val // 3
-        num_test = cfg.dataset.num_test * 2 // 3
+        num_val = num_val // 3
+        num_test = num_test * 2 // 3
         print(f"num_val = {num_val}, num_test = {num_test}")
 
     # Reassign labels in validation and test splits
     data.val_mask.fill_(False)
-    data.val_mask[rm[: cfg.dataset.num_val]] = True
-    num_prev = cfg.dataset.num_val
+    data.val_mask[rm[:num_val]] = True
+    num_prev = num_val
     data.test_mask.fill_(False)
-    data.test_mask[rm[num_prev : num_prev + cfg.dataset.num_test]] = True
+    data.test_mask[rm[num_prev : num_prev + num_test]] = True
 
     new_train_key = data.train_mask.numpy().astype(int).sum()
     new_val_key = data.val_mask.numpy().astype(int).sum()

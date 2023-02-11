@@ -1,10 +1,10 @@
 out_dir: results
 wandb:
   use: True
-  project: cora
+  project: citeseer
 dataset:
   format: PyG-Planetoid
-  name: Cora
+  name: Citeseer
   task: node
   task_type: classification
   transductive: True

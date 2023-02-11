@@ -1,10 +1,10 @@
 out_dir: results
 wandb:
   use: True
-  project: cora
+  project: pubmed
 dataset:
   format: PyG-Planetoid
-  name: Cora
+  name: PubMed
   task: node
   task_type: classification
   transductive: True
@@ -25,10 +25,10 @@ gnn:
   layers_mp: 2
   layers_post_mp: 1
   dim_inner: 16
-  layer_type: gcnconv
+  layer_type: gatconv
   stage_type: stack
   batchnorm: True
-  act: relu
+  act: elu
   dropout: 0.0
   agg: mean
   normalize_adj: False

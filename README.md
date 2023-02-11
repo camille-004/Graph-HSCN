@@ -3,10 +3,10 @@
 This project is built on [poetry](https://python-poetry.org/) for dependency management and packaging.
 
 ## Usage
-The config files available for experiments are available in the `configs` directory. To run a repeated baseline GCN on the Cora dataset, run the following:
+The config files available for experiments are available in the `configs` directory. To run a repeated baseline GCN on the resampled Cora dataset, run the following:
 
 ```bash
-python.main.py --cfg configs/gcn/peptides_func_GCN.yaml --repeats 3
+python.main.py --cfg configs/gcn/cora_GCN.yaml --repeats 3
 ```
 
 ## Acknowledgements

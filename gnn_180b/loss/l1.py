@@ -25,8 +25,9 @@ def l1(
     """
     if cfg.model.loss_fun == "l1":
         l1_loss = nn.L1Loss()
+        loss = l1_loss(y_pred, y_true)
+        return loss, y_pred
     elif cfg.model.loss_fun == "smoothl1":
         l1_loss = nn.SmoothL1Loss()
-
-    loss = l1_loss(y_pred, y_true)
-    return loss, y_pred
+        loss = l1_loss(y_pred, y_true)
+        return loss, y_pred
