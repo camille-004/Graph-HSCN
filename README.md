@@ -15,6 +15,7 @@ python run.py --cfg configs/GCN/cora_GCN.yaml --repeats 3
 ```bash
 make
 ```
+The upload to DockerHub is currently failing due to Python version conflicts with poetry. ETS is currently working on fixing this.
 
 ## Acknowledgements
 The code in this project is heavily adapted and modified from the following repositories:
