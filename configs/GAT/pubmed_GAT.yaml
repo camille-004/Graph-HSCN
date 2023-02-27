@@ -12,6 +12,7 @@ dataset:
   node_encoder_name: Atom
   node_encoder_bn: False
   edge_encoder: False
+  citation_buffer: 1
 train:
   batch_size: 128
   eval_period: 1

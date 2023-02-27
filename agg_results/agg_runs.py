@@ -18,7 +18,7 @@ from torch_geometric.graphgym.utils.io import (  # noqa
     makedirs_rm_exist,
 )
 
-from gnn_180b.util import set_new_cfg_allowed
+from ca_net.util import set_new_cfg_allowed
 
 sys.path.append(".")
 sys.path.append("..")

@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "gnn-180b"
+name = "ca-net"
 version = "0.1.0"
 description = ""
 authors = ["camille-004 <dunningcamille@gmail.com>"]
 readme = "README.md"
-packages = [{include = "gnn_180b"}]
+packages = [{include = "ca-net"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"

@@ -3,7 +3,7 @@ FROM python:3.10
 COPY ./configs ./configs
 COPY ./run ./run
 COPY ./Makefile Makefile
-COPY ./gnn_180b gnn_180b
+COPY ca_net gnn_180b
 COPY pyproject.toml .
 COPY README.md .
 

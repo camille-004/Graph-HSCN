@@ -1,8 +1,8 @@
 .PHONY: create_environment install clean lint format baselines
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-NAME = gnn_180b
-SRC_DIR = gnn_180b
+NAME = ca_net
+SRC_DIR = ca_net
 
 # Set up Python interpreter environment
 create_environment:
