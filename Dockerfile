@@ -10,6 +10,6 @@ COPY README.md .
 
 RUN pip3 install poetry
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-cache --only-root --no-dev
+RUN poetry install --no-cache --no-root --no-dev
 
 ENTRYPOINT [ "make" ]
