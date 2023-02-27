@@ -1,8 +1,9 @@
 <h1 align="center">
 CANet: Clusterized Attention Network for Long Range Graph Data
-</h1>
 
 [![Publish Docker image](https://github.com/camille-004/gnn_DSC180B/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/camille-004/gnn_DSC180B/actions/workflows/docker-image.yml)
+
+</h1>
 
 This project is built on [poetry](https://python-poetry.org/) for dependency management and packaging.
 
