@@ -5,6 +5,7 @@ COPY ./run ./run
 COPY ./Makefile Makefile
 COPY ./gnn_180b gnn_180b
 COPY pyproject.toml .
+COPY README.md .
 
 RUN pip3 install poetry
 RUN poetry config virtualenvs.create false
