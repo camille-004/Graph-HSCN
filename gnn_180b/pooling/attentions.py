@@ -79,28 +79,24 @@ class SparseAttention(nn.Module):
             Output tensor of shape (batch_size, num_nodes,
             num_heads * out_channels).
         """
-        b, n, _ = x.size()
+        n, _ = x.size()
         h = self.num_heads
 
         # Reshape input tensor into shape (batch size, num_nodes,
         # output_channels).
-        Q_h = self.Q(x).view(b, n, h, self.out_channels)
-        K_H = self.K(x).view(b, n, h, self.out_channels)
-        V = self.V(x).view(b, n, h, self.out_channels)
+        Q_h = self.Q(x).view(n, h, self.out_channels)
+        K_H = self.K(x).view(n, h, self.out_channels)
+        V = self.V(x).view(n, h, self.out_channels)
 
         # Transpose attention heads and reshape tensor.
-        Q_h = (
-            Q_h.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
-        )
-        K_H = (
-            K_H.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
-        )
-        V = V.transpose(2, 1).contiguous().view(b * h, n, self.out_channels)
+        Q_h = Q_h.transpose(2, 1).contiguous().view(h, n, self.out_channels)
+        K_H = K_H.transpose(2, 1).contiguous().view(h, n, self.out_channels)
+        V = V.transpose(2, 1).contiguous().view(h, n, self.out_channels)
         x = (
-            x.view(b, h, self.in_channels)
+            x.view(h, self.in_channels)
             .transpose(1, 0)
             .contiguous()
-            .view(b * h, self.in_channels)
+            .view(h, self.in_channels)
         )
 
         # Compute attention scores and normalize with square root of
@@ -110,13 +106,13 @@ class SparseAttention(nn.Module):
 
         # Dot-product between attention scores and attention keys.
         x = torch.einsum("ij,jbd->ibd", x, K_H)
-        x = x.view(b, h, n, self.out_channels)
-        x = x.tranpose(2, 1).contiguous().view(b, n, h * self.out_channels)
+        x = x.view(h, n, self.out_channels)
+        x = x.tranpose(2, 1).contiguous().view(n, h * self.out_channels)
 
         if self.concat:
             x = x.mean(dim=2)
         else:
-            x = x.view(b, n, h, self.out_channels).mean(dim=2)
+            x = x.view(n, h, self.out_channels).mean(dim=2)
 
         return x
 

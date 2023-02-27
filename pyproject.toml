@@ -29,6 +29,7 @@ flake8-docstrings = "^1.7.0"
 yacs = "^0.1.8"
 wandb = "^0.13.10"
 tensorboardx = "^2.5.1"
+matplotlib = "^3.7.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "3.0.4"

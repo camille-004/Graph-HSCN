@@ -200,13 +200,13 @@ def make_wandb_name(cfg: CfgNode) -> str:
     return name
 
 
-def flatten_dict(metrics: list[dict]) -> dict:
+def flatten_dict(metrics: list[dict] | list[list]) -> dict:
     """Flatten a list of train/val/test metrics into one dict for WandB.
 
     Parameters
     ----------
-    metrics : list[dict]
-        List of dictionaries with metrics.
+    metrics : list[dict] | list[list]
+        List of dictionaries or lists with metrics.
 
     Returns
     -------

@@ -19,7 +19,7 @@ class SANTransformer(nn.Module):
         dim_in = self.encoder.dim_in
 
         if cfg.gnn.layers_pre_mp > 0:
-            # Graph pre-maximmum pooling, generate compact representation of
+            # Graph pre-maximum pooling, generate compact representation of
             # graph's structure by aggregating into global feature vector.
             self.pre_mp = GNNPreMP(
                 dim_in, cfg.gnn.dim_inner, cfg.gnn.layers_pre_mp

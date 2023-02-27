@@ -17,7 +17,6 @@ import wandb
 from gnn_180b.logger import CustomLogger
 from gnn_180b.util import cfg_to_dict, flatten_dict, make_wandb_name
 
-
 Split = Literal["train", "val", "test"]
 
 
@@ -91,7 +90,7 @@ def eval_epoch(
     logger: CustomLogger,
     loader: Data,
     model: GraphGymModule,
-    split: Split = "val",
+    split: str = "val",
 ) -> None:
     """Define an evaluation epoch.
 
@@ -103,7 +102,7 @@ def eval_epoch(
         Data to be loaded.
     model : GraphGymModule
         Model to evaluate.
-    split : Split
+    split : str
         Split to be used by epoch.
 
     Returns
@@ -173,7 +172,7 @@ def custom_train(
     if start_epoch == cfg.optim.max_epoch:
         logging.info("Checkpoint found. Task already done.")
     else:
-        logging.info("Start from epoch {}".format(start_epoch))
+        logging.info(f"Start from epoch {start_epoch}")
 
     if cfg.wandb.use:
         if cfg.wandb.name == "":
@@ -305,4 +304,4 @@ def custom_train(
         run.finish()
         run = None
 
-    logging.info("Task done, results saved in {}".format(cfg.run_dir))
+    logging.info(f"Task done, results saved in {cfg.run_dir}")

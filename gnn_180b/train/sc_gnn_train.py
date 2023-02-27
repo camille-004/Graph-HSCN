@@ -1,24 +1,13 @@
 """Customized training pipeline."""
-import logging
-import time
 from typing import Literal
 
-import numpy as np
 import torch
-from torch_geometric.data import Data
-from torch_geometric.graphgym.checkpoint import clean_ckpt, save_ckpt
-from torch_geometric.graphgym.config import cfg
-from torch_geometric.graphgym.loss import compute_loss
-from torch_geometric.graphgym.model_builder import GraphGymModule
-from torch_geometric.graphgym.register import register_train
-from torch_geometric.graphgym.utils.epoch import is_ckpt_epoch, is_eval_epoch
-
-import wandb
-from gnn_180b.logger import CustomLogger
-from gnn_180b.util import cfg_to_dict, flatten_dict, make_wandb_name
-
 from sklearn.metrics import normalized_mutual_info_score as NMI
+from torch_geometric.data import Data
+from torch_geometric.graphgym.model_builder import GraphGymModule
+from torch_geometric.transforms import gcn_norm
 
+from gnn_180b.logger import CustomLogger
 
 Split = Literal["train", "val", "test"]
 
@@ -55,12 +44,15 @@ def train_epoch(
 
     data = loader
     # Normalized adjacency matrix
-    data.edge_index, data.edge_weight = gcn_norm(  
-                    data.edge_index, data.edge_weight, data.num_nodes,
-                    add_self_loops=False, dtype=data.x.dtype)
+    data.edge_index, data.edge_weight = gcn_norm(
+        data.edge_index,
+        data.edge_weight,
+        data.num_nodes,
+        add_self_loops=False,
+        dtype=data.x.dtype,
+    )
 
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     data = data.to(device)
     print(model)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
@@ -74,27 +66,22 @@ def train_epoch(
         optimizer.step()
         return loss.item()
 
-
     @torch.no_grad()
     def test():
         model.eval()
         clust, _, _ = model(data.x, data.edge_index, data.edge_weight)
         return NMI(clust.max(1)[1].cpu(), data.y.cpu())
 
-
     patience = 50
     best_nmi = 0
     for epoch in range(1, 10000):
         train_loss = train()
         nmi = test()
-        print(f'Epoch: {epoch:03d}, Loss: {train_loss:.4f}, NMI: {nmi:.3f}')
+        print(f"Epoch: {epoch:03d}, Loss: {train_loss:.4f}, NMI: {nmi:.3f}")
         if nmi > best_nmi:
             best_nmi = nmi
             patience = 50
         else:
-            patience -= 1     
+            patience -= 1
         if patience == 0:
             break
-
-
-

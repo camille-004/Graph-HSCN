@@ -49,14 +49,14 @@ class MultiHeadAttentionLayer(nn.Module):
 
     def __init__(
         self,
-        gamma,
-        in_channels,
-        out_channels,
-        num_heads,
-        full_graph,
-        fake_edge_emb,
-        use_bias,
-    ):
+        gamma: float,
+        in_channels: int,
+        out_channels: int,
+        num_heads: int,
+        full_graph: bool,
+        fake_edge_emb: torch.Tensor,
+        use_bias: bool,
+    ) -> None:
         super().__init__()
         self.out_channels = out_channels
         self.num_heads = num_heads
@@ -223,7 +223,7 @@ class SANLayer(nn.Module):
         out_channels: int,
         num_heads: int,
         full_graph: bool,
-        fake_edge_emb: nn.Embedding,
+        fake_edge_emb: nn.Embedding | torch.Tensor,
         dropout: float,
         layer_norm=False,
         batch_norm=False,
