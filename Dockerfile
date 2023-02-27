@@ -1,16 +1,13 @@
-FROM ucsdets/scipy-ml-notebook:2022.3-stable
-
-RUN pip install --upgrade pip
-RUN pip install poetry
-
-RUN poetry config virtualenvs.create false
-
-COPY ./poetry.lock ./pyproject.toml ./
-RUN poetry env use python3.10
-RUN poetry install --no-cache --only main
+FROM python:3.10
 
 COPY ./configs ./configs
 COPY ./run ./run
 COPY ./Makefile Makefile
 COPY ./gnn_180b gnn_180b
-RUN poetry install --no-cache --only-root
+COPY pyproject.toml .
+
+RUN pip3 install poetry
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-cache --only-root --no-dev
+
+ENTRYPOINT [ "make" ]
