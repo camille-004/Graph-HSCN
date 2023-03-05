@@ -6,7 +6,7 @@ from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.models.gnn import FeatureEncoder, GNNPreMP
 from torch_geometric.graphgym.register import register_network
 
-from shgnn.layer.san_layer import SANLayer
+from graph_hscn.layer.san_layer import SANLayer
 
 
 @register_network("SANTransformer")

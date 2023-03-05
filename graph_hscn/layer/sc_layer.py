@@ -20,7 +20,7 @@ class SCLayer(torch.nn.Module):
     mp_act: str
         The name of the activation function to use for the message passing
         layers (e.g., "Identity", "ReLU").
-    in_channels: int
+    dim_in: int
         The number of input channels for the first GraphConv message passing
         layer.
     num_clusters: int
@@ -46,7 +46,7 @@ class SCLayer(torch.nn.Module):
         self,
         mp_units: Collection,
         mp_act: str,
-        in_channels: int,
+        dim_in: int,
         num_clusters: int,
         mlp_units: list,
         mlp_act: str = "Identity",
@@ -59,7 +59,7 @@ class SCLayer(torch.nn.Module):
         # Message passing layers
         mp = [
             (
-                GraphConv(in_channels, mp_units[0]),
+                GraphConv(dim_in, mp_units[0]),
                 "x, edge_index, edge_weight -> x",
             ),
             mp_act,

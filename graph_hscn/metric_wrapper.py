@@ -18,7 +18,7 @@ from torchmetrics.functional import (
     recall,
 )
 
-from shgnn.util import pearsonr, spearmanr
+from graph_hscn.util import pearsonr, spearmanr
 
 METRICS_CLASSIFICATION: dict[str, Callable] = {
     "accuracy": accuracy,

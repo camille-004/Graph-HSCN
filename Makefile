@@ -1,8 +1,8 @@
 .PHONY: create_environment install clean lint format baselines
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-NAME = shgnn
-SRC_DIR = shgnn
+NAME = graph_hscn
+SRC_DIR = graph_hscn
 
 # Set up Python interpreter environment
 create_environment:

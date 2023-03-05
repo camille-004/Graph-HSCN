@@ -5,9 +5,9 @@ from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.models.encoder import AtomEncoder
 from torch_geometric.graphgym.register import register_node_encoder
 
-from shgnn.encoder.equiv_stable_laplace import EquivStableLapPENodeEncoder
-from shgnn.encoder.laplace import LapPENodeEncoder
-from shgnn.encoder.signnet import SignNetNodeEncoder
+from graph_hscn.encoder.equiv_stable_laplace import EquivStableLapPENodeEncoder
+from graph_hscn.encoder.laplace import LapPENodeEncoder
+from graph_hscn.encoder.signnet import SignNetNodeEncoder
 
 # Dataset-specific node encoders.
 DS_ENCS: dict[str, type] = {"Atom": AtomEncoder}

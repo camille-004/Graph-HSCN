@@ -7,7 +7,7 @@ from torch_geometric.data import Data
 from torch_geometric.graphgym.model_builder import GraphGymModule
 from torch_geometric.transforms import gcn_norm
 
-from shgnn.logger import CustomLogger
+from graph_hscn.logger import CustomLogger
 
 Split = Literal["train", "val", "test"]
 

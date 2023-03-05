@@ -1,6 +1,8 @@
 """Package for registering custom loaders."""
+# isort: off
 import glob
 from os.path import basename, dirname, isfile, join
+
 
 modules = glob.glob(join(dirname(__file__), "*.py"))
 __all__ = [

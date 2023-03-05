@@ -4,7 +4,7 @@ from yacs.config import CfgNode as CN
 
 
 @register_config("gt_cfg")
-def set_cfg_gt(cfg: CN):
+def set_cfg_gt(cfg: CN) -> None:
     """Define a custom config for more graph transformer options.
 
     Parameters

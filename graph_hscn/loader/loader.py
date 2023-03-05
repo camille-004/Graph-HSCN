@@ -13,14 +13,24 @@ from torch_geometric.graphgym.loader import load_pyg
 from torch_geometric.graphgym.register import register_loader
 from torch_geometric.utils import degree
 
-from shgnn.loader.dataset.peptides_functional import PeptidesFunctionalDataset
-from shgnn.loader.dataset.peptides_structural import PeptidesStructuralDataset
-from shgnn.loader.split_generator import prepare_splits, set_dataset_splits
-from shgnn.transform.posenc_stats import compute_posenc_stats
-from shgnn.transform.transforms import (
+# isort: off
+from graph_hscn.loader.dataset.peptides_functional import (
+    PeptidesFunctionalDataset,
+)
+from graph_hscn.loader.dataset.peptides_structural import (
+    PeptidesStructuralDataset,
+)
+from graph_hscn.loader.split_generator import (
+    prepare_splits,
+    set_dataset_splits,
+)
+from graph_hscn.transform.posenc_stats import compute_posenc_stats
+from graph_hscn.transform.transforms import (
     pre_transform_in_memory,
     resample_citation_network,
 )
+
+# isort: on
 
 
 def log_loaded_dataset(dataset: Data, _format: str, name: str) -> None:

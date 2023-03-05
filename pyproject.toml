@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "ca-net"
+name = "graph-hscn"
 version = "0.1.0"
 description = ""
 authors = ["camille-004 <dunningcamille@gmail.com>"]
 readme = "README.md"
-packages = [{include = "ca-net"}]
+packages = [{include = "graph_hscn"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -81,7 +81,8 @@ exclude = '''
 | _build
 | buck-out
 | build
-| gnn_v2/tests
-| gnn_v2/notebooks
+| graph_hscn/tests
+| graph_hscn/notebooks
+| graph_hscn/loader/
 )/
 '''

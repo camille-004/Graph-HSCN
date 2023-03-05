@@ -7,7 +7,7 @@ from torch_geometric.data import Data
 from torch_geometric.nn import Linear
 from torch_scatter import scatter
 
-from shgnn.util import negate_edge_index
+from graph_hscn.util import negate_edge_index
 
 
 class MultiHeadAttentionLayer(nn.Module):

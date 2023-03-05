@@ -2,7 +2,7 @@ FROM python:3.10
 
 COPY ./configs ./configs
 COPY ./run ./run
-COPY shgnn ./shgnn
+COPY graph_hscn ./graph_hscn
 COPY run.py .
 COPY Makefile Makefile
 COPY pyproject.toml .

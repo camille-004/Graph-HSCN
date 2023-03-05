@@ -14,8 +14,8 @@ from torch_geometric.graphgym.register import register_train
 from torch_geometric.graphgym.utils.epoch import is_ckpt_epoch, is_eval_epoch
 
 import wandb
-from shgnn.logger import CustomLogger
-from shgnn.util import cfg_to_dict, flatten_dict, make_wandb_name
+from graph_hscn.logger import CustomLogger
+from graph_hscn.util import cfg_to_dict, flatten_dict, make_wandb_name
 
 Split = Literal["train", "val", "test"]
 

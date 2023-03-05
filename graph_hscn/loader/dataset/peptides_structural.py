@@ -14,7 +14,7 @@ from torch_geometric.data import Data, InMemoryDataset, download_url
 from torch_geometric.transforms import BaseTransform
 from tqdm import tqdm
 
-import shgnn.loader.dataset.constants as Const
+import graph_hscn.loader.dataset.constants as Const
 
 
 class PeptidesStructuralDataset(InMemoryDataset):

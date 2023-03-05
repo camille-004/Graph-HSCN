@@ -18,7 +18,7 @@ from torch_geometric.graphgym.utils.io import (  # noqa
     makedirs_rm_exist,
 )
 
-from shgnn.util import set_new_cfg_allowed
+from graph_hscn.util import set_new_cfg_allowed
 
 sys.path.append(".")
 sys.path.append("..")
