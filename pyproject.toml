@@ -30,6 +30,7 @@ yacs = "^0.1.8"
 wandb = "^0.13.10"
 tensorboardx = "^2.5.1"
 matplotlib = "^3.7.0"
+networkx = "^3.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "3.0.4"
@@ -44,6 +45,10 @@ name = "PyG"
 url = "https://data.pyg.org/whl/torch-1.13.0+cu117.html"
 default = false
 secondary = false
+
+
+[tool.poetry.group.dev.dependencies]
+plotly = "^5.13.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

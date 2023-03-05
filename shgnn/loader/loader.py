@@ -13,11 +13,11 @@ from torch_geometric.graphgym.loader import load_pyg
 from torch_geometric.graphgym.register import register_loader
 from torch_geometric.utils import degree
 
-from ca_net.loader.dataset.peptides_functional import PeptidesFunctionalDataset
-from ca_net.loader.dataset.peptides_structural import PeptidesStructuralDataset
-from ca_net.loader.split_generator import prepare_splits, set_dataset_splits
-from ca_net.transform.posenc_stats import compute_posenc_stats
-from ca_net.transform.transforms import (
+from shgnn.loader.dataset.peptides_functional import PeptidesFunctionalDataset
+from shgnn.loader.dataset.peptides_structural import PeptidesStructuralDataset
+from shgnn.loader.split_generator import prepare_splits, set_dataset_splits
+from shgnn.transform.posenc_stats import compute_posenc_stats
+from shgnn.transform.transforms import (
     pre_transform_in_memory,
     resample_citation_network,
 )

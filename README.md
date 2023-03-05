@@ -1,5 +1,5 @@
 <h1 align="center">
-CANet: Clusterized Attention Network for Long Range Graph Data
+SH-GNN: Spectral Heterogeneous Graph Neural Network for Long-Range Interactions
 
 [![Publish Docker image](https://github.com/camille-004/gnn_DSC180B/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/camille-004/gnn_DSC180B/actions/workflows/docker-image.yml)
 

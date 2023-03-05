@@ -91,7 +91,7 @@ class SCLayer(torch.nn.Module):
         edge_index: torch.Tensor,
         edge_weight: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """SCGNN forward pass.
+        """SC-GNN forward pass.
 
         Performs a forward pass of the spectral clustering GNN module on the
         input graph.

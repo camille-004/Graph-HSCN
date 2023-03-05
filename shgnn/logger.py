@@ -19,9 +19,9 @@ from torch_geometric.graphgym.config import cfg
 from torch_geometric.graphgym.logger import Logger, infer_task
 from torch_geometric.graphgym.utils.io import dict_to_json
 
-import ca_net.metrics_ogb as metrics_ogb
-from ca_net.metric_wrapper import MetricWrapper
-from ca_net.util import eval_spearmanr, reformat
+import shgnn.metrics_ogb as metrics_ogb
+from shgnn.metric_wrapper import MetricWrapper
+from shgnn.util import eval_spearmanr, reformat
 
 
 class CustomLogger(Logger):

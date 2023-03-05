@@ -2,7 +2,7 @@ FROM python:3.10
 
 COPY ./configs ./configs
 COPY ./run ./run
-COPY ./ca_net ./ca_net
+COPY shgnn ./shgnn
 COPY run.py .
 COPY Makefile Makefile
 COPY pyproject.toml .

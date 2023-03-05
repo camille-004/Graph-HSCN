@@ -27,9 +27,9 @@ from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
 from yacs.config import CfgNode
 
-import ca_net  # noqa, register custom modules
-from ca_net.logger import create_logger
-from ca_net.train.custom_train import custom_train
+import shgnn  # noqa, register custom modules
+from shgnn.logger import create_logger
+from shgnn.train.custom_train import custom_train
 
 
 def new_optim_config(_cfg: CfgNode) -> OptimizerConfig:

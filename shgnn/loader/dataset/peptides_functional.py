@@ -1,4 +1,4 @@
-"""Class for peptides structural dataset."""
+"""Class for peptides functional dataset."""
 import hashlib
 import os
 import pickle
@@ -14,13 +14,13 @@ from torch_geometric.data import Data, InMemoryDataset, download_url
 from torch_geometric.transforms import BaseTransform
 from tqdm import tqdm
 
-import ca_net.loader.dataset.constants as Const
+import shgnn.loader.dataset.constants as Const
 
 
-class PeptidesStructuralDataset(InMemoryDataset):
+class PeptidesFunctionalDataset(InMemoryDataset):
     """Class for peptides functional dataset.
 
-    11-target regression.
+    10-label multi-label classification.
 
     Parameters
     ----------
@@ -74,11 +74,11 @@ class PeptidesStructuralDataset(InMemoryDataset):
     ) -> None:
         self.original_root = root
         self.smiles2graph = _smiles2graph
-        self.folder = os.path.join(root, "peptides_structural")
-        self.url = Const.STRUCTURAL_URL
-        self.version = Const.STRUCTURAL_VERSION
-        self.url_stratified_split = Const.STRUCTURAL_URL_STRATIFIED_SPLIT
-        self.md5sum_stratified_split = Const.STRUCTURAL_MD5SUM_STRATIFIED_SPLIT
+        self.folder = os.path.join(root, "peptides_functional")
+        self.url = Const.FUNCTIONAL_URL
+        self.version = Const.FUNCTIONAL_VERSION
+        self.url_stratified_split = Const.FUNCTIONAL_URL_STRATIFIED_SPLIT
+        self.md5sum_stratified_split = Const.FUNCTIONAL_MD5SUM_STRATIFIED_SPLIT
 
         release_tag = os.path.join(self.folder, self.version)
 
@@ -100,9 +100,10 @@ class PeptidesStructuralDataset(InMemoryDataset):
 
         Returns
         -------
-        Raw file names.
+        str
+            Raw file names.
         """
-        return Const.STRUCTURAL_RAW_FILE_NAME
+        return Const.FUNCTIONAL_RAW_FILE_NAME
 
     @property
     def processed_file_names(self) -> str:
@@ -110,9 +111,10 @@ class PeptidesStructuralDataset(InMemoryDataset):
 
         Returns
         -------
-        Processed file names.
+        str
+            Processed file names.
         """
-        return Const.STRUCTURAL_PROCESSED_FILE_NAMES
+        return Const.FUNCTIONAL_PROCESSED_FILE_NAMES
 
     def _md5sum(self, path: str) -> str:
         """Get the MD5 of a path.
@@ -124,7 +126,8 @@ class PeptidesStructuralDataset(InMemoryDataset):
 
         Returns
         -------
-        The MD5 of the binary file.
+        str
+            The MD5 of the binary file.
         """
         hash_md5 = hashlib.md5()
 
@@ -134,7 +137,7 @@ class PeptidesStructuralDataset(InMemoryDataset):
 
         return hash_md5.hexdigest()
 
-    def download(self) -> None:
+    def download(self):
         """Download the peptides data from the URL.
 
         Returns
@@ -164,13 +167,9 @@ class PeptidesStructuralDataset(InMemoryDataset):
         None
         """
         df = pd.read_csv(
-            os.path.join(self.raw_dir, Const.STRUCTURAL_RAW_FILE_NAME)
+            os.path.join(self.raw_dir, Const.FUNCTIONAL_RAW_FILE_NAME)
         )
         smiles_list = df["smiles"]
-        target_names = Const.STRUCTURAL_TARGET_NAMES
-        df.loc[:, target_names] = df.loc[:, target_names].apply(
-            lambda x: (x - x.mean()) / x.std(), axis=0
-        )
 
         print("Converting SMILES strings into graphs...")
         data_list = []
@@ -179,7 +178,6 @@ class PeptidesStructuralDataset(InMemoryDataset):
             data = Data()
 
             smiles = smiles_list[i]
-            y = df.iloc[i][target_names]
             graph = smiles2graph(smiles)
 
             assert len(graph["edge_feat"]) == graph["edge_index"].shape[1]
@@ -193,7 +191,7 @@ class PeptidesStructuralDataset(InMemoryDataset):
                 torch.int64
             )
             data.x = torch.from_numpy(graph["node_feat"]).to(torch.int64)
-            data.y = torch.Tensor([y])
+            data.y = torch.Tensor([eval(df["labels"].iloc[i])])
 
             data_list.append(data)
 
@@ -217,7 +215,7 @@ class PeptidesStructuralDataset(InMemoryDataset):
             Dictionary of splits.
         """
         split_file = os.path.join(
-            self.root, Const.STRUCTURAL_SPLIT_PICKLE_FILE
+            self.root, Const.FUNCTIONAL_SPLIT_PICKLE_FILE
         )
         with open(split_file, "rb") as f:
             splits = pickle.load(f)
