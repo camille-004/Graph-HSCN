@@ -15,7 +15,13 @@ from torch_geometric.nn.conv import MessagePassing
 class ExampleGNN(torch.nn.Module):
     """Example GNN."""
 
-    def __init__(self, dim_in, dim_out, num_layers=2, model_type="GCN"):
+    def __init__(
+        self,
+        dim_in: int,
+        dim_out: int,
+        num_layers: int = 2,
+        model_type: str = "GCN",
+    ) -> None:
         super().__init__()
         conv_model = self.build_conv_model(model_type)
         self.convs = nn.ModuleList()
@@ -40,14 +46,15 @@ class ExampleGNN(torch.nn.Module):
         type[MessagePassing]
             The convolution layer to be used.
         """
-        if model_type == "GCN":
-            return pyg_nn.GCNConv
-        elif model_type == "GAT":
-            return pyg_nn.GATConv
-        elif model_type == "GraphSage":
-            return pyg_nn.SAGEConv
-        else:
-            raise ValueError(f"Model {model_type} unavailable")
+        match model_type:
+            case "GCN":
+                return pyg_nn.GCNConv
+            case "GAT":
+                return pyg_nn.GATConv
+            case "GraphSage":
+                return pyg_nn.SAGEConv
+            case other:
+                raise ValueError(f"Model {model_type} unavailable.")
 
     def forward(self, batch: Data) -> Data:
         """Forward method.

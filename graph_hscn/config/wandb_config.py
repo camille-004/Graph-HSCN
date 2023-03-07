@@ -23,10 +23,10 @@ def set_cfg_wandb(cfg: CN):
     cfg.wandb.use = False
 
     # Wandb entity name, should exist beforehand
-    cfg.wandb.entity = "canet_entity"
+    cfg.wandb.entity = "180b_entity"
 
     # Wandb project name
-    cfg.wandb.project = "canet_project"
+    cfg.wandb.project = "graph_hscn_project"
 
     # Optional run name
     cfg.wandb.name = ""
