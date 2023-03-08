@@ -24,9 +24,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Lower-case image name
+        run: |
+          echo $IMAGE_LC=${IMAGE,,} >> ${GITHUB_ENV}
+        env:
+          IMAGE: '${{ github.repository }}'
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context:  .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ IMAGE_LC }}:latest
