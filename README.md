@@ -1,5 +1,5 @@
 <h1 align="center">
-Graph-HSCN: Heterogeneous Spectral Cluster Network for Long-Range Interactions
+Graph-HSCN: Heterogenized Spectral Cluster Network for Long-Range Representation Learning
 
 [![Publish Docker image](https://github.com/camille-004/gnn_DSC180B/actions/workflows/docker-image.yml/badge.svg?branch=master)](https://github.com/camille-004/gnn_DSC180B/actions/workflows/docker-image.yml)
 
