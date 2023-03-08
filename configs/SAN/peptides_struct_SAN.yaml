@@ -1,13 +1,14 @@
 out_dir: results
-metric_best: ap
+metric_best: mae
+metric_agg: argmin
 wandb:
   use: True
-  project: peptides-func
+  project: peptides-struct
 dataset:
   format: OGB
-  name: peptides-functional
+  name: peptides-structural
   task: graph
-  task_type: classification_multilabel
+  task_type: regression
   transductive: False
   node_encoder: True
   node_encoder_name: Atom+LapPE
@@ -16,7 +17,7 @@ dataset:
   edge_encoder_name: Bond
   edge_encoder_bn: False
 posenc_LapPE:
-  enable: False
+  enable: True
   eigen:
     laplacian_norm: sym
     eigvec_norm: L2
@@ -34,7 +35,7 @@ train:
   ckpt_period: 100
 model:
   type: SANTransformer
-  loss_fun: cross_entropy
+  loss_fun: l1
   graph_pooling: mean
 gt:
   layers: 4

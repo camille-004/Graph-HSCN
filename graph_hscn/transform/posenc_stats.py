@@ -80,7 +80,7 @@ def compute_posenc_stats(
             max_freqs = cfg.posenc_LapPE.eigen.max_freqs
             eigvec_norm = cfg.posenc_LapPE.eigen.eigvec_norm
         elif "EquivStableLapPE" in pe_types:
-            max_freqs = cfg.posenc_EquivStableLLapPE.eigen.nax_freqs
+            max_freqs = cfg.posenc_EquivStableLapPE.eigen.max_freqs
             eigvec_norm = cfg.posenc_EquivStableLapPE.eigen.eigvec_norm
 
         data.eig_vals, data.eig_vecs = get_lap_decomp_stats(
