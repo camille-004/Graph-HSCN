@@ -11,7 +11,33 @@ from graph_hscn.layer.san_layer import SANLayer
 
 @register_network("SANTransformer")
 class SANTransformer(nn.Module):
-    """SANTransformer module."""
+    """Self-Attention Network (SAN) Transformer module.
+
+    Applies a series of SAN layers to a batch of input data.
+
+    Parameters
+    ----------
+    dim_in : int
+        The dimensionality of the input data.
+    dim_out : int
+        The dimensionality of the output data.
+
+    Attributes
+    ----------
+    encoder : FeatureEncoder
+        The feature encoder for the input data.
+    pre_mp : GNNPreMP, optional
+        The pre-maximum pooling graph neural network (GNN) layer, if any.
+    transformer_layers : nn.Sequential
+        The sequence of SAN layers.
+    post_mp : GNNHead
+        The post-maximum pooling GNN layer.
+
+    Methods
+    -------
+    forward(batch)
+        Computes the forward pass of the SAN Transformer.
+    """
 
     def __init__(self, dim_in: int, dim_out: int) -> None:
         super().__init__()
