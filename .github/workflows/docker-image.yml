@@ -3,8 +3,6 @@ name: Publish to GCR
 on:
   push:
     branch: ['master']
-  pull_request:
-    branch: ['master']
 
 jobs:
   push_docker_image:
