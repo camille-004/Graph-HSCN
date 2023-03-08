@@ -35,4 +35,4 @@ jobs:
         with:
           context:  .
           push: true
-          tags: ghcr.io/${{ IMAGE_LC }}:latest
+          tags: ghcr.io/${{ env.IMAGE_LC }}:latest
