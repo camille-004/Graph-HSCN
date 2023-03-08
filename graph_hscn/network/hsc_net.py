@@ -1,4 +1,4 @@
-"""SH-GNN model definition."""
+"""Graph-HSCN model definition."""
 import torch
 import torch.nn as nn
 import torch_geometric.nn as pyg_nn
@@ -27,6 +27,8 @@ class SHNetwork(nn.Module):
 
 
 class HeteroGNN(nn.Module):
+    """Heterogeneous GNN for clustered graph."""
+
     def __init__(
         self,
         dim_in: int,
@@ -64,6 +66,7 @@ class HeteroGNN(nn.Module):
     def build_conv_relation(
         self, model_type: str
     ) -> tuple[type[MessagePassing], int | tuple[int, int]]:
+        """Build convolutional layers for heterogeneous relations."""
         match model_type:
             case "GCN":
                 return pyg_nn.GCNConv, -1
@@ -75,6 +78,7 @@ class HeteroGNN(nn.Module):
                 raise ValueError(f"Model {model_type} unavailable.")
 
     def forward(self, x_dict: dict, edge_index_dict: dict) -> torch.Tensor:
+        """HeteroGNN forward pass."""
         for conv in self.convs:
             x_dict = conv(x_dict, edge_index_dict)
             x_dict = {key: x.relu() for key, x in x_dict.items()}

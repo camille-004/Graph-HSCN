@@ -49,6 +49,7 @@ secondary = false
 
 [tool.poetry.group.dev.dependencies]
 plotly = "^5.13.1"
+seaborn = "^0.12.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

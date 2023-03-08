@@ -24,7 +24,7 @@ class SANTransformer(nn.Module):
             self.pre_mp = GNNPreMP(
                 dim_in, cfg.gnn.dim_inner, cfg.gnn.layers_pre_mp
             )
-            dim_in = cfg.gnn.dim_innerid
+            dim_in = cfg.gnn.dim_inner
 
         assert (
             cfg.gt.dim_hidden == cfg.gnn.dim_inner == dim_in
