@@ -26,7 +26,7 @@ jobs:
 
       - name: Lower-case image name
         run: |
-          echo $IMAGE_LC=${IMAGE,,} >> ${GITHUB_ENV}
+          echo "IMAGE_LC=${IMAGE,,}" >> ${GITHUB_ENV}
         env:
           IMAGE: '${{ github.repository }}'
 
