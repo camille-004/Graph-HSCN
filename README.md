@@ -6,8 +6,16 @@ GraphHSCN: Heterogenized Spectral Cluster Network for Long Range Representation 
   <p><a href="https://datascience.ucsd.edu/">Halıcıoğlu Data Science Institute</a>, UC San Diego, La Jolla, CA</p>
 
 </div>
+
+<p align="center">
+  <a href="https://drive.google.com/file/d/1kODg7Qw4hAj1e2Ct91R_tvom8MHdeGln/view" alt="Paper">
+        <img src="https://img.shields.io/badge/Project-Paper-%238affca" /></a>
+        
+  <a href="https://graphhscn.github.io//" alt="Website">
+        <img src="https://img.shields.io/badge/Project-Website-%238affca" /></a>
+</p>
 <hr />
-[![Website](https://img.shields.io/badge/Project-Website-87CEEB)](https://graphhscn.github.io/)
+
 
 <!-- [![Paper (First Draft)](https://img.shields.io/badge/Project-Paper-9cf)](https://drive.google.com/file/d/1kODg7Qw4hAj1e2Ct91R_tvom8MHdeGln/view) -->
 
