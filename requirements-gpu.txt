@@ -1,0 +1,14 @@
+
+# PyTorch
+--extra-index-url https://download.pytorch.org/whl/cu117
+
+# PyTorch Geometric
+-f https://data.pyg.org/whl/torch-1.13.1+cu117.html
+-r ./requirements-core.txt
+torch==1.13.1
+torch-cluster
+torch-geometric
+torch-scatter
+torch-sparse
+torch-spline-conv
+torchmetrics

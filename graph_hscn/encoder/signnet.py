@@ -1,54 +1,14 @@
-"""SignNet definition."""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.data import Data
-from torch_geometric.graphgym.register import register_node_encoder
 from torch_geometric.nn import GINConv
 from torch_scatter import scatter
-from yacs.config import CfgNode
+
+from graph_hscn.config.config import PEConfig
 
 
 class MLP(nn.Module):
-    """Multi-layer perceptron.
-
-    Parameters
-    ----------
-    in_channels : int
-        Number of input channels.
-    hidden_channels : int
-        Number of hidden channels.
-    out_channels : int
-        Number of output channels.
-    num_layers : int
-        Number of layers in the MLP.
-    use_bn : bool, optional
-        Whether to use batch normalization, by default False.
-    use_ln : bool, optional
-        Whether to use layer normalization, by default False.
-    activation : str, optional
-        Activation function to use, by default "relu".
-    residual : bool, optional
-        Whether to use residual connections, by default False.
-
-    Attributes
-    ----------
-    fcs : nn.ModuleList
-        A list containing the fully connected layers.
-    bns : nn.ModuleList
-        A list containing the batch normalization layers.
-    lns : nn.ModuleList
-        A list containing the layer normalization layers.
-    activation : nn.Module
-        The activation function to use.
-    use_bn : bool
-        Whether to use batch normalization.
-    use_ln : bool
-        Whether to use layer normalization.
-    residual : bool
-        Whether to use residual connections.
-    """
-
     def __init__(
         self,
         in_channels: int,
@@ -57,6 +17,7 @@ class MLP(nn.Module):
         num_layers: int,
         use_bn: bool = False,
         use_ln: bool = False,
+        dropout: float = 0.5,
         activation: str = "relu",
         residual: bool = False,
     ) -> None:
@@ -95,23 +56,12 @@ class MLP(nn.Module):
             case other:
                 raise ValueError("Invalid activation.")
 
+        self.dropout = dropout
         self.use_bn = use_bn
         self.use_ln = use_ln
         self.residual = residual
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """MLP forward pass.
-
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input node features.
-
-        Returns
-        -------
-        torch.Tensor
-            Forward pass result.
-        """
         x_prev = x
         for i, fc in enumerate(self.fcs[:-1]):
             x = fc(x)
@@ -143,26 +93,6 @@ class MLP(nn.Module):
 
 
 class GIN(nn.Module):
-    """GIN implementation.
-
-    Parameters
-    ----------
-    in_channels : int
-        The number of input channels.
-    hidden_channels : int
-        The number of hidden channels.
-    out_channels : int
-        The number of output channels.
-    n_layers : int
-        The number of layers in the network.
-    use_bn : bool, optional (default=True)
-        Whether to use batch normalization.
-    dropout : float, optional (default=0.5)
-        The dropout probability.
-    activation : str, optional (default="relu")
-        The activation function to use.
-    """
-
     def __init__(
         self,
         in_channels: int,
@@ -185,7 +115,7 @@ class GIN(nn.Module):
             in_channels,
             hidden_channels,
             hidden_channels,
-            2,
+            1,
             use_bn=use_bn,
             dropout=dropout,
             activation=activation,
@@ -198,7 +128,7 @@ class GIN(nn.Module):
                 hidden_channels,
                 hidden_channels,
                 hidden_channels,
-                2,
+                1,
                 use_bn=use_bn,
                 dropout=dropout,
                 activation=activation,
@@ -225,20 +155,6 @@ class GIN(nn.Module):
     def forward(
         self, x: torch.Tensor, edge_index: torch.Tensor
     ) -> torch.Tensor:
-        """GIN forward pass.
-
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input node features.
-        edge_index : torch.Tensor
-            Input edge index.
-
-        Returns
-        -------
-        torch.Tensor
-            Forward pass results.
-        """
         for i, layer in enumerate(self.layers):
             if i != 0:
                 x = F.dropout(x, p=self.dropout, training=self.training)
@@ -250,45 +166,11 @@ class GIN(nn.Module):
                     else:
                         raise ValueError("Invalid x dim.")
             x = layer(x, edge_index)
+
         return x
 
 
 class GINDeepSigns(nn.Module):
-    """Sign-invariant neural network with MLP aggregation.
-
-    Parameters
-    ----------
-    in_channels : int
-        The number of input channels.
-    hidden_channels : int
-        The number of hidden channels.
-    out_channels : int
-        The number of output channels.
-    num_layers : int
-        The number of layers.
-    k : int
-        The number of graph signals in the input.
-    dim_pe : int
-        The number of per-edge features.
-    rho_num_layers : int
-        The number of layers in the final MLP aggregation.
-    use_bn : bool, optional
-        Use batch normalization, by default False.
-    use_ln : bool, optional
-        Use layer normalization, by default False.
-    dropout : float, optional
-        The dropout rate, by default 0.5.
-    activation : str, optional
-        The activation function to use, by default "relu".
-
-    Attributes
-    ----------
-    enc : GIN
-        The GIN encoder.
-    rho : MLP
-        The final MLP aggregation.
-    """
-
     def __init__(
         self,
         in_channels: int,
@@ -330,22 +212,6 @@ class GINDeepSigns(nn.Module):
         edge_index: torch.Tensor,
         batch_index: torch.Tensor,
     ) -> torch.Tensor:
-        """GINDeepSigns forward pass.
-
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input node features.
-        edge_index : torch.Tensor
-            Input edge index.
-        batch_index : torch.Tensor
-            Batch of each node.
-
-        Returns
-        -------
-        torch.Tensor
-            Forward pass result.
-        """
         N = x.shape[0]  # Total number of nodes in the batch.
         x = x.transpose(0, 1)  # n x k x in -> k x n x in
         x = self.enc(x, edge_index) + self.enc(-x, edge_index)
@@ -357,44 +223,6 @@ class GINDeepSigns(nn.Module):
 
 
 class MaskedGINDeepSigns(nn.Module):
-    """MaskedGINDeepSigns module.
-
-    DeepSet handles permutation invariance, meaning the order of the nodes
-    should not impact the final representation. Achieved by transforming the
-    graph representation into a set representation which is then fed into an
-    MLP.
-
-    Parameters
-    ----------
-    in_channels : int
-        The number of input channels.
-    hidden_channels : int
-        The number of hidden channels.
-    out_channels : int
-        The number of output channels.
-    num_layers : int
-        The number of layers.
-    dim_pe : int
-        The size of the set representation.
-    rho_num_layers : int
-        The number of layers for the rho module.
-    use_bn : bool, optional
-        Use batch normalization, by default False.
-    use_ln : bool, optional
-        Use layer normalization, by default False.
-    dropout : float, optional
-        The dropout rate (default: 0.5).
-    activation : str, optional
-        The activation function to use (default: "relu").
-
-    Attributes
-    ----------
-    enc : GIN
-        The GIN module for encoding the input graph.
-    rho : MLP
-        The MLP module for transforming the set representation.
-    """
-
     def __init__(
         self,
         in_channels: int,
@@ -429,18 +257,6 @@ class MaskedGINDeepSigns(nn.Module):
         )
 
     def batched_n_nodes(self, batch_index: torch.Tensor) -> torch.Tensor:
-        """Compute the number of nodes in each graph in a batch of graphs.
-
-        Parameters
-        ----------
-        batch_index : torch.Tensor
-            Batch index of each node.
-
-        Returns
-        -------
-        torch.Tensor
-            Tensor representing the number of nodes in each batch.
-        """
         batch_size = batch_index.max().item() + 1
         one = batch_index.new_ones(batch_index.size(0))
 
@@ -457,30 +273,13 @@ class MaskedGINDeepSigns(nn.Module):
         edge_index: torch.Tensor,
         batch_index: torch.Tensor,
     ) -> torch.Tensor:
-        """MaskedGINDeepSigns forward pass.
-
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input node features.
-        edge_index : torch.Tensor
-            Input edge index.
-        batch_index : torch.Tensor
-            Batch index tensor.
-
-        Returns
-        -------
-        torch.Tensor
-            Result of the rho module.
-        """
         N = x.shape[0]  # Total number of nodes in the batch.
         K = x.shape[1]  # Max. number of eigenvectors / frequencies.
-        x = x.transpose(0, 1)  # N x K x in -> K x N x N
+        x = x.transpose(0, 1)  # N x K x N -> K x N x N
 
         # Apply twice to ensure sign invariance.
         x = self.enc(x, edge_index) + self.enc(-x, edge_index)  # k x n x out
         x = x.transpose(0, 1)  # K x N x out -> N x K x out
-
         batched_num_nodes = self.batched_n_nodes(batch_index)
 
         # Zero out values that are beyond the number of nodes in the batch
@@ -497,63 +296,28 @@ class MaskedGINDeepSigns(nn.Module):
         return x
 
 
-@register_node_encoder("SignNet")
 class SignNetNodeEncoder(torch.nn.Module):
-    """SignNet implementation.
-
-    Extends the GIN architecture by using sign-invariant graph aggregation to
-    preserve the signs of the eigenvectors of the Laplacian.
-
-    Parameters
-    ----------
-    cfg : CfgNode
-        Configuration node with the necessary parameters.
-    dim_in : int
-        The size of the input feature space.
-    dim_emb : int
-        The desired size of the output node embeddings.
-    expand_x : bool, optional
-        Flag indicating whether the input node features should be expanded
-        before being concatenated with the sign-invariant aggregation, by
-        default True.
-
-    Attributes
-    ----------
-    model_type : str
-        The type of model used for the sign-invariant aggregation, either "MLP"
-        or "DeepSet".
-    pass_as_var : bool
-        Flag indicating whether the sign-invariant aggregation should be passed
-        as a separate variable.
-    linear_x : torch.nn.Module
-        A linear layer used to expand the input node features, if `expand_x` is
-        True.
-    sign_inv_net : torch.nn.Module
-        The sign-invariant aggregation model.
-    """
-
     def __init__(
-        self, cfg: CfgNode, dim_in: int, dim_emb: int, expand_x: bool = True
+        self, cfg: PEConfig, dim_in: int, dim_emb: int, expand_x: bool = True
     ) -> None:
         super().__init__()
-        pe_cfg = cfg.posenc_SignNet
-        dim_pe = pe_cfg.dim_pe  # Size of PE embedding
-        model_type = pe_cfg.model  # Encoder NN model type for SignNet
+        dim_pe = cfg.dim_pe  # Size of PE embedding
+        model_type = cfg.model  # Encoder NN model type for SignNet
 
         if model_type not in ["MLP", "DeepSet"]:
             raise ValueError(f"Unexpected SignNet model {model_type}")
 
         self.model_type = model_type
-        sign_inv_layers = pe_cfg.layers  # Num. layers in \phi GNN part
-        rho_layers = pe_cfg.post_layers  # Num. layers in \rho MLP/DeepSet
+        sign_inv_layers = cfg.layers  # Num. layers in \phi GNN part
+        rho_layers = cfg.post_layers  # Num. layers in \rho MLP/DeepSet
 
         if rho_layers < 1:
             raise ValueError("Num layers in rho model has to be positive.")
 
-        max_freqs = pe_cfg.eigen.max_freqs  # Num. eigenvectors (frequencies)
+        max_freqs = cfg.eigen_max_freqs  # Num. eigenvectors (frequencies)
 
         # Pass PE also as a separate variable
-        self.pass_as_var = pe_cfg.pass_as_var
+        self.pass_as_var = cfg.pass_as_var
 
         if dim_emb - dim_pe < 1:
             raise ValueError(
@@ -569,25 +333,25 @@ class SignNetNodeEncoder(torch.nn.Module):
         if self.model_type == "MLP":
             self.sign_inv_net = GINDeepSigns(
                 in_channels=1,
-                hidden_channels=pe_cfg.phi_hidden_dim,
-                out_channels=pe_cfg.phi_out_dim,
+                hidden_channels=cfg.phi_hidden_dim,
+                out_channels=cfg.phi_out_dim,
                 num_layers=sign_inv_layers,
                 k=max_freqs,
                 dim_pe=dim_pe,
                 rho_num_layers=rho_layers,
-                use_bn=True,
+                use_bn=cfg.use_bn,
                 dropout=0.0,
                 activation="relu",
             )
         elif self.model_type == "DeepSet":
             self.sign_inv_net = MaskedGINDeepSigns(
                 in_channels=1,
-                hidden_channels=pe_cfg.phi_hidden_dim,
-                out_channels=pe_cfg.phi_out_dim,
+                hidden_channels=cfg.phi_hidden_dim,
+                out_channels=cfg.phi_out_dim,
                 num_layers=sign_inv_layers,
                 dim_pe=dim_pe,
                 rho_num_layers=rho_layers,
-                use_bn=True,
+                use_bn=cfg.use_bn,
                 dropout=0.0,
                 activation="relu",
             )
@@ -595,23 +359,6 @@ class SignNetNodeEncoder(torch.nn.Module):
             raise ValueError(f"Unexpected model {self.model_type}")
 
     def forward(self, batch: Data) -> Data:
-        """SignNet forward pass.
-
-        Encode the graph representations with a GIN, then apply the sign-
-        invariant aggregation, which computes the sum of the node's
-        representations and their negatives. Pass the representations
-        through a fully-connected readout network.
-
-        Parameters
-        ----------
-        batch : Data
-            Input batch.
-
-        Returns
-        -------
-        Data
-            Forward pass result.
-        """
         if not (hasattr(batch, "eigvals_sn") and hasattr(batch, "eigvecs_sn")):
             raise ValueError(
                 "Precomputed eigen values and vectors are "
@@ -629,7 +376,7 @@ class SignNetNodeEncoder(torch.nn.Module):
 
         # Expand node features if needed
         if self.expand_x:
-            h = self.linear_x(batch.x)
+            h = self.linear_x(batch.x.to(torch.float32))
         else:
             h = batch.x
 

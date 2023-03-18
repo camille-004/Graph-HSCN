@@ -1,15 +1,14 @@
 FROM python:3.10
 
-COPY ./configs ./configs
-COPY ./run ./run
-COPY graph_hscn ./graph_hscn
-COPY run.py .
-COPY Makefile Makefile
-COPY pyproject.toml .
-COPY README.md .
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED=1
 
-RUN pip3 install poetry
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-cache --no-root --no-dev
+WORKDIR /graph_hscn
 
-ENTRYPOINT [ "make" ]
+# Install pip requirements
+RUN python -m pip install -U pip setuptools wheel
+COPY ./Makefile ./requirements-cpu.txt ./requirements-gpu.txt ./requirements-core.txt ./setup.py ./
+RUN make env
+
+# During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
+CMD ["python", "-m", "run.py"]

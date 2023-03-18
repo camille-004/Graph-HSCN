@@ -1,0 +1,41 @@
+# DataConfig defaults
+BUFFER = 1
+BATCH_SIZE = 32
+NUM_WORKERS = 0
+
+# ModelConfig defaults
+DROPOUT = 0.2
+NUM_LAYERS = 3
+TEST_SIZE = 0.3
+HIDDEN_CHANNELS = 16
+USE_BATCH_NORM = False
+USE_LAYER_NORM = False
+
+# OptimConfig defaults
+BATCH_ACCUMULATION = 1
+CLIP_GRAD_NORM = False
+LR = 0.01
+WEIGHT_DECAY = 5e-3
+
+# PEConfig defaults
+PE_MODEL = "DeepSet"
+PE_LAYERS = 1
+POST_LAYERS = 1
+EIG_MAX_FREQS = 10
+EIGVEC_NORM = "L2"
+EIG_LAP_NORM = "sym"
+PHI_HIDDEN_DIM = 32
+PHI_OUT_DIM = 4
+PASS_AS_VAR = False
+PE_USE_BN = False
+
+# TrainingConfig defaults
+EPOCHS = 500
+EVAL_PERIOD = 10
+MIN_DELTA = 0.01
+PATIENCE = 2
+USE_WANDB = True
+
+# HSCNConfig defaults
+NUM_CLUSTERS = 4
+CLUSTER_EPOCHS = 10

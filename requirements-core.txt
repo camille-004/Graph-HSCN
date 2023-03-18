@@ -1,0 +1,18 @@
+# Local package
+-e .
+
+# Development
+black
+flake8
+flake8-docstrings
+isort
+jupyter
+numpy
+ogb>=1.3.5
+
+# Main packages
+pandas==1.5.3
+pydantic
+pytest
+rdkit>=2022.9.3
+wandb
