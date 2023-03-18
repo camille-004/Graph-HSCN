@@ -1,0 +1,18 @@
+{
+  "name": "Graph-HSCN",
+  "build": {
+    "context": "..",
+    "dockerfile": "../Dockerfile"
+  },
+  "settings": {
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.formatting.provider": "black",
+    "python.formatting.blackArgs": ["--line-length", "79"]
+  },
+  "runArgs": ["--gpus", "all"],
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  }
+}
