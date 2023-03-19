@@ -1,0 +1,41 @@
+data:
+  dataset_name: peptides_func
+  batch_size: 32
+  num_workers: 0
+mp:
+  conv_type: gcn
+  activation: relu
+  hidden_channels: 16
+  num_layers: 3
+  dropout: 0.2
+  use_batch_norm: False
+  use_layer_norm: False
+optim:
+  optim_type: adamW
+  batch_accumulation: 1
+  clip_grad_norm: False
+  lr: 0.01
+  weight_decay: 5e-4
+pe:
+  use: False
+  dim_in: 16
+  dim_pe: 4
+  model: DeepSet
+  layers: 1
+  post_layers: 1
+  eig_max_freqs: 10
+  eigvec_norm: L2
+  eig_lap_norm: sym
+  phi_hidden_dim: 16
+  phi_out_dim: 4
+  pass_as_var: False
+  use_bn: False
+training:
+  model_type: gcn
+  use_wandb: true
+  loss_fn: cross_entropy
+  metric: ap
+  max_epochs: 500
+  eval_period: 10
+  min_delta: 0.01
+  patience: 2

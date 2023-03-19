@@ -133,14 +133,15 @@ class PEConfig(BaseModel):
 class TrainingConfig(BaseModel):
     """Training configuration."""
 
+    model_type: str
     loss_fn: str
     metric: str
-    wandb_proj_name: str
     epochs: int = defaults.EPOCHS
     eval_period: int = defaults.EVAL_PERIOD
     min_delta: float = defaults.MIN_DELTA
     patience: int = defaults.PATIENCE
     use_wandb: bool = defaults.USE_WANDB
+    wandb_proj_name: str | None
 
     @root_validator
     def check_use_wandb(cls, values):

@@ -151,8 +151,6 @@ def train(
     _loaders: list[DataLoader],
     _model: nn.Module,
 ):
-    if _training_cfg.use_wandb:
-        wandb.init(project=_training_cfg.wandb_proj_name)
     num_epochs = _training_cfg.epochs
     optimizer = OPTIM_DICT[_optim_cfg.optim_type](
         lr=_optim_cfg.lr,
@@ -213,6 +211,4 @@ def train(
                             f"more than {_training_cfg.patience} epochs, "
                             f"stopping early."
                         )
-                        wandb.finish()
                         return
-    wandb.finish()

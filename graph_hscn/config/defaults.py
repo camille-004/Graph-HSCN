@@ -13,7 +13,7 @@ USE_LAYER_NORM = False
 BATCH_ACCUMULATION = 1
 CLIP_GRAD_NORM = False
 LR = 0.01
-WEIGHT_DECAY = 5e-3
+WEIGHT_DECAY = 5e-4
 
 # PEConfig defaults
 PE_MODEL = "DeepSet"
