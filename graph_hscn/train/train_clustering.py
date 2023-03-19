@@ -1,12 +1,12 @@
 from typing import Sequence
 
 import torch
-import wandb
 from ogb.graphproppred import PygGraphPropPredDataset
 from torch_geometric.data import Data
 from torch_geometric.nn.conv.gcn_conv import gcn_norm
 from tqdm import tqdm
 
+import wandb
 from graph_hscn.config.config import (
     OPTIM_DICT,
     HSCNConfig,

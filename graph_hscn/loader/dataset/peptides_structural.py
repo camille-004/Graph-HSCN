@@ -23,8 +23,8 @@ class PeptidesStructuralDataset(InMemoryDataset):
         self,
         root: Path = DATASETS_DIR,
         _smiles2graph: Callable[[str], dict] = smiles2graph,
-        transform: BaseTransform | Callable = None,
-        pre_transform: BaseTransform | Callable = None,
+        transform: BaseTransform = None,
+        pre_transform: BaseTransform = None,
     ) -> None:
         self.original_root = root
         self.smiles2graph = _smiles2graph

@@ -61,7 +61,7 @@ def get_loader(
 
 
 def load_dataset(
-    logger: CustomLogger, data_cfg: DataConfig, pe_cfg: PEConfig
+    logger: CustomLogger, data_cfg: DataConfig, pe_cfg: PEConfig | None = None
 ) -> tuple[list[DataLoader], PygGraphPropPredDataset]:
     if data_cfg.dataset_name == "peptides_func":
         dataset = PeptidesFunctionalDataset()

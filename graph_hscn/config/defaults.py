@@ -1,12 +1,10 @@
 # DataConfig defaults
-BUFFER = 1
 BATCH_SIZE = 32
 NUM_WORKERS = 0
 
 # ModelConfig defaults
 DROPOUT = 0.2
 NUM_LAYERS = 3
-TEST_SIZE = 0.3
 HIDDEN_CHANNELS = 16
 USE_BATCH_NORM = False
 USE_LAYER_NORM = False

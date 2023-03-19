@@ -10,7 +10,7 @@ from torch_geometric.nn.conv import MessagePassing
 
 import graph_hscn.config.defaults as defaults
 
-ACT_DICT: dict[str, Callable | nn.Module] = {
+ACT_DICT: dict[str, Callable] = {
     "elu": F.elu,
     "relu": F.relu,
     "tanh": torch.tanh,
@@ -26,17 +26,23 @@ OPTIM_DICT: [str, type[Optimizer]] = {
     "adam": Adam,
     "adamW": AdamW,
 }
+DATASETS_NUM_FEATURES: [str, int] = {"peptides_func": 9, "peptides_struct": 9}
 
 
 class DataConfig(BaseModel):
     """Model for data location."""
 
     dataset_name: str
-    task_level: str
     pe: bool = True
-    buffer: int = defaults.BUFFER
     batch_size: int = defaults.BATCH_SIZE
     num_workers: int = defaults.NUM_WORKERS
+    task_level: str | None
+
+    @validator("task_level", always=True)
+    def set_task_level(cls, v, values):
+        if "peptides" in values["dataset_name"]:
+            return "graph"
+        return "node"
 
 
 class MPNNConfig(BaseModel):

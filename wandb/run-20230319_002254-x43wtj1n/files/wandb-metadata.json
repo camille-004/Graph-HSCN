@@ -1,0 +1,157 @@
+{
+    "os": "Linux-5.15.0-43-generic-x86_64-with-glibc2.35",
+    "python": "3.10.6",
+    "heartbeatAt": "2023-03-19T07:22:55.125008",
+    "startedAt": "2023-03-19T07:22:54.258083",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "-d",
+        "peptides_func",
+        "-m",
+        "gcn",
+        "-a",
+        "relu",
+        "--hidden_channels",
+        "64",
+        "--optim_type",
+        "adamW",
+        "--use_wandb"
+    ],
+    "state": "running",
+    "program": "/home/camille/Code/school/DSC180B/graph_hscn/main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "https://github.com/camille-004/gnn_DSC180B.git",
+        "commit": "9a6ffa2915e0b74d9d265364820918db0ff1c06c"
+    },
+    "email": "dunningcamille@gmail.com",
+    "root": "/home/camille/Code/school/DSC180B/graph_hscn",
+    "host": "camille-Alienware-x15-R2",
+    "username": "camille",
+    "executable": "/home/camille/Code/school/DSC180B/test/venv/bin/python",
+    "cpu_count": 14,
+    "cpu_count_logical": 20,
+    "cpu_freq": {
+        "current": 2868.8871,
+        "min": 400.0,
+        "max": 4520.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2277.742,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 5000.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 3800.0
+        },
+        {
+            "current": 2900.0,
+            "min": 400.0,
+            "max": 3800.0
+        }
+    ],
+    "disk": {
+        "total": 937.3305015563965,
+        "used": 255.07210159301758
+    },
+    "gpu": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+            "memory_total": 8589934592
+        }
+    ],
+    "memory": {
+        "total": 31.029998779296875
+    }
+}

@@ -5,7 +5,7 @@ from torch_geometric.data import Data
 from torch_geometric.nn import GINConv
 from torch_scatter import scatter
 
-from graph_hscn.config.config import PEConfig, ACT_DICT
+from graph_hscn.config.config import ACT_DICT, PEConfig
 
 
 class MLP(nn.Module):

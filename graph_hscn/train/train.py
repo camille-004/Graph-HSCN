@@ -3,11 +3,11 @@ from typing import Callable
 
 import torch
 import torch.nn as nn
-import wandb
 from torch.optim import Optimizer
 from torch_geometric.loader import DataLoader
 from tqdm import tqdm
 
+import wandb
 from graph_hscn.config.config import (
     OPTIM_DICT,
     DataConfig,
@@ -151,6 +151,8 @@ def train(
     _loaders: list[DataLoader],
     _model: nn.Module,
 ):
+    if _training_cfg.use_wandb:
+        wandb.init(project=_training_cfg.wandb_proj_name)
     num_epochs = _training_cfg.epochs
     optimizer = OPTIM_DICT[_optim_cfg.optim_type](
         lr=_optim_cfg.lr,
