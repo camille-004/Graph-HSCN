@@ -35,8 +35,7 @@ TODO: Flowchart figure
 ## Getting Started
 
 ### Prerequisites
-1. To set up the environment and install all dependencies, run `make env`.
-2. Create a `datasets` directory at the project level. This is where the loader will save downloaded datasets.
+To set up the environment and install all dependencies, run `make env`. The `logs` and `datasets` directories will be created automatically at the project level.
   
 ### `.devcontainers` Support
 TODO
