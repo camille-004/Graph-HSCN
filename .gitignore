@@ -82,7 +82,7 @@ target/
 /logs/
 
 # WandB logs
-*/wandb/
+/wandb/
 
 # .mypy_cache
 .mypy_cache
