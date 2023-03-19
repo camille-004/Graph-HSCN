@@ -5,7 +5,7 @@ from torch_geometric.data import Data
 from torch_geometric.nn import GINConv
 from torch_scatter import scatter
 
-from graph_hscn.config.config import PEConfig
+from graph_hscn.config.config import PEConfig, ACT_DICT
 
 
 class MLP(nn.Module):
@@ -46,16 +46,7 @@ class MLP(nn.Module):
                     self.lns.append(nn.LayerNorm(hidden_channels))
             self.fcs.append(nn.Linear(hidden_channels, out_channels))
 
-        match activation:
-            case "relu":
-                self.activation = nn.ReLU()
-            case "elu":
-                self.activation = nn.ELU()
-            case "tanh":
-                self.activation = nn.Tanh()
-            case other:
-                raise ValueError("Invalid activation.")
-
+        self.activation = ACT_DICT["activation"]
         self.dropout = dropout
         self.use_bn = use_bn
         self.use_ln = use_ln
