@@ -24,8 +24,6 @@ GraphHSCN: Heterogenized Spectral Cluster Network for Long Range Representation 
 
 ## :rocket: Highlights and Contributions
 
-TODO: Flowchart figure
-
 >**<p align="justify"> Abstract:** *Graph Neural Networks (GNNs) have gained tremendous popularity for their potential to effectively learn from graph-structured data, commonly encountered in real-world applications. However, most of these models, based on the message-passing paradigm (interactions within a neighborhood of a few nodes), can only handle local interactions within a graph. When we enforce the models to use information from far away nodes, we will encounter two major issues: oversmoothing & oversquashing. Architectures such as the transformer and diffusion models are introduced to solve this; although transformers are powerful, they require significant computational resources for both training and inference, thereby limiting their scalability, particularly for graphs with long-term dependencies. Hence, this paper proposes GraphHSCN—a Heterogenized Spectral Cluster Network, a message-passing-based approach specifically designed for capturing long-range interaction. On our first iteration of ablation studies, we observe reduced time complexities compared to SAN, the most popular graph transformer model, yet comparable performance in graph-level prediction tasks.*
 
 ### Main Contributions
@@ -36,20 +34,6 @@ TODO: Flowchart figure
 
 ### Prerequisites
 To set up the environment and install all dependencies, run `make env`. The `logs` and `datasets` directories will be created automatically at the project level.
-  
-### `.devcontainers` Support
-TODO
-### Running with CLI
-TODO
-### Running in Prefect UI
-TODO
-
-<hr/>
-
-## Hyperparameter Tuning & Results
-TODO
-
-<hr/>
 
 ## Contact
 Feel free to open an issue on this repository or e-mail adunning@ucsd.edu.
